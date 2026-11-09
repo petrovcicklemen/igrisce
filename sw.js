@@ -1,6 +1,6 @@
 /* Preprosto predpomnjenje: aplikacija deluje tudi brez povezave. Ob novi različici povečaj VERSION. */
-var VERSION = 'igrisce-v1';
-var FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
+var VERSION = 'igrisce-v2';
+var FILES = ['./', 'index.html', 'fonts.css', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'fonts/nunito-latin-500-normal.woff2', 'fonts/nunito-latin-600-normal.woff2', 'fonts/nunito-latin-700-normal.woff2', 'fonts/nunito-latin-ext-500-normal.woff2', 'fonts/nunito-latin-ext-600-normal.woff2', 'fonts/nunito-latin-ext-700-normal.woff2'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
 });
