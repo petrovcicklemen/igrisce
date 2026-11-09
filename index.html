@@ -1,0 +1,2018 @@
+<!doctype html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B6E8A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Matematično igrišče</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Podvodni svet: hobotnica Hobi vodi otroka skozi igro, nagrade so biseri.
+   Telefon: en stolpec. Široka ali ležeča tablica: vprašanje levo, številčnica desno.
+   Vsak modul se nariše v isti okvir (#app), začetni zaslon pa jih našteje iz seznama MODULES. */
+:root{
+  --bg:#E4F5F8; --surface:#FFFFFF; --surface-2:#C9E9EF; --edge:#AFD6DE;
+  --fg:#0E2E47; --muted:#3B5C75;
+  --accent:#0B6E8A; --accent-fg:#FFFFFF; --accent-deep:#074A5E; --accent-soft:#CFF0F6; --accent-soft-fg:#074A5E;
+  --action:#C93B2B; --action-fg:#FFFFFF; --action-deep:#8F2A1E;
+  --mascot:#F0705A; --mascot-deep:#D8523C; --ink:#1B2540; --blush:#FF9EB0;
+  --pearl:#F7DDEC; --pearl-edge:#9A5B86; --s1:#E9A400; --s2:#7B5EA7;
+  --try-bg:#FFE9C7; --try-fg:#6B3F00;
+  --focus:#1D4ED8;
+  --bubble:rgba(11,110,138,.09);
+  --font:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1E33; --surface:#12304B; --surface-2:#1A3F5F; --edge:#061423;
+    --fg:#E6F5FA; --muted:#A8C8D9;
+    --accent:#4CC9E0; --accent-fg:#03303B; --accent-deep:#1D8CA6; --accent-soft:#124A5C; --accent-soft-fg:#C8F2FB;
+    --action:#FF8A73; --action-fg:#3A0E06; --action-deep:#A9442F;
+    --mascot:#FF8F78; --mascot-deep:#E86F57; --blush:#FFB0C0;
+    --pearl:#FBE9F4; --pearl-edge:#D79CC3; --s1:#FFC83D; --s2:#B59CE0;
+    --try-bg:#4A3510; --try-fg:#FFE2AE;
+    --focus:#FFD166;
+    --bubble:rgba(130,225,245,.08);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1E33; --surface:#12304B; --surface-2:#1A3F5F; --edge:#061423;
+  --fg:#E6F5FA; --muted:#A8C8D9;
+  --accent:#4CC9E0; --accent-fg:#03303B; --accent-deep:#1D8CA6; --accent-soft:#124A5C; --accent-soft-fg:#C8F2FB;
+  --action:#FF8A73; --action-fg:#3A0E06; --action-deep:#A9442F;
+  --mascot:#FF8F78; --mascot-deep:#E86F57; --blush:#FFB0C0;
+  --pearl:#FBE9F4; --pearl-edge:#D79CC3; --s1:#FFC83D; --s2:#B59CE0;
+  --try-bg:#4A3510; --try-fg:#FFE2AE;
+  --focus:#FFD166;
+  --bubble:rgba(130,225,245,.08);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--fg);
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 8% 22%,var(--bubble) 0 18px,transparent 19px),
+    radial-gradient(circle at 93% 12%,var(--bubble) 0 28px,transparent 29px),
+    radial-gradient(circle at 86% 70%,var(--bubble) 0 14px,transparent 15px),
+    radial-gradient(circle at 14% 84%,var(--bubble) 0 24px,transparent 25px);
+  background-repeat:no-repeat;
+  font-family:var(--font); font-size:18px; line-height:1.35;
+  padding-block:16px 24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-text-size-adjust:100%;
+}
+#app{min-height:100%; display:flex; flex-direction:column; gap:18px; max-width:1120px; margin:0 auto}
+h1,h2,p{margin:0}
+h1{font-size:clamp(1.9rem,6vw,2.8rem); font-weight:600; line-height:1.1; text-wrap:balance}
+h2{font-size:1.25rem; font-weight:600}
+button{font:inherit; color:inherit; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none}
+button:disabled{cursor:default}
+button:focus-visible,input:focus-visible{outline:4px solid var(--focus); outline-offset:3px}
+
+/* Biser in hobotnica */
+.pb{fill:var(--pearl); stroke:var(--pearl-edge); stroke-width:1.5}
+.ps{fill:#fff; opacity:.9}
+.mascot .ob{fill:var(--mascot)}
+.mascot .ot{fill:none; stroke:var(--mascot); stroke-width:11; stroke-linecap:round}
+.mascot .od{fill:var(--mascot-deep)}
+.mascot .oe,.mascot .oh{fill:#fff}
+.mascot .op{fill:var(--ink)}
+.mascot .oc{fill:var(--blush); opacity:.6}
+.mascot .oa{fill:none; stroke:var(--ink); stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round}
+.mascot .om{fill:var(--ink); stroke:var(--ink); stroke-width:2; stroke-linejoin:round}
+
+/* Skupni deli */
+.top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px}
+.hello{color:var(--muted); font-size:1.05rem}
+.tools{display:flex; gap:10px; flex:none}
+.icon-btn{width:52px; height:52px; padding:0; border:0; border-radius:16px; background:var(--surface); box-shadow:0 3px 0 var(--edge); display:grid; place-items:center; flex:none}
+.icon-btn svg{width:26px; height:26px; fill:none; stroke:var(--fg); stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round}
+.icon-btn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--edge)}
+.btn{min-height:52px; padding:0 24px; border:0; border-radius:16px; background:var(--accent); color:var(--accent-fg); font-weight:600; font-size:1.1rem; box-shadow:0 3px 0 var(--accent-deep)}
+.btn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--accent-deep)}
+.btn.ghost{background:var(--surface-2); color:var(--fg); box-shadow:0 3px 0 var(--edge)}
+.pagehead{display:flex; align-items:center; gap:14px}
+.pagehead h1{font-size:clamp(1.5rem,5vw,2.2rem)}
+.sub{color:var(--muted)}
+
+/* Začetni zaslon */
+.nameform{display:flex; flex-wrap:wrap; align-items:center; gap:10px; background:var(--surface); border-radius:20px; padding:14px 16px; box-shadow:0 3px 0 var(--edge)}
+.nameform label{font-weight:500}
+.nameform input{flex:1 1 160px; min-width:0; height:52px; border-radius:14px; border:2px solid var(--muted); background:var(--bg); color:var(--fg); font:inherit; font-size:1.2rem; padding:0 14px}
+.buddy{display:flex; align-items:center; gap:16px}
+.buddy .mascot{width:104px; height:104px; flex:none}
+.bubble{position:relative; flex:1; min-width:0; background:var(--surface); border-radius:22px; padding:14px 18px; box-shadow:0 3px 0 var(--edge); font-size:1.15rem; font-weight:500}
+.bubble::before{content:""; position:absolute; left:-10px; top:50%; margin-top:-9px; border-style:solid; border-width:9px 10px 9px 0; border-color:transparent var(--surface) transparent transparent}
+.stats{display:flex; flex-wrap:wrap; gap:12px}
+.stat{flex:1 1 200px; min-width:0; display:flex; align-items:center; gap:12px; background:var(--surface); border-radius:20px; padding:14px 20px; box-shadow:0 3px 0 var(--edge)}
+.stat .ic{display:grid; flex:none}
+.stat .ic svg{width:34px; height:34px}
+.stat b{display:block; font-size:1.6rem; font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums}
+.stat .lbl{color:var(--muted); font-size:.95rem}
+.cal{fill:none; stroke:var(--accent); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+.modules{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
+.module{display:flex; align-items:center; gap:16px; width:100%; text-align:left; padding:18px 20px; border:0; border-radius:24px; background:var(--accent); color:var(--accent-fg); box-shadow:0 4px 0 var(--accent-deep)}
+.module:not(:disabled):active{transform:translateY(3px); box-shadow:0 1px 0 var(--accent-deep)}
+.module:disabled{background:var(--surface-2); color:var(--muted); box-shadow:none}
+.module .ico{width:56px; height:56px; border-radius:16px; background:var(--surface); display:grid; place-items:center; flex:none}
+.module .ico svg{width:56px; height:56px}
+.ico path,.ico circle{fill:none; stroke-width:4.5; stroke-linecap:round}
+.ico .a{stroke:var(--accent)}
+.ico .b{stroke:var(--action)}
+.module:disabled .ico .a,.module:disabled .ico .b{stroke:var(--muted)}
+.module .t{display:block; font-size:1.4rem; font-weight:600; line-height:1.15}
+.module .d{display:block; font-size:1rem}
+
+/* Izbira težavnosti */
+.levels{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.level{display:flex; flex-direction:column; align-items:flex-start; gap:6px; width:100%; text-align:left; padding:20px; border:0; border-radius:24px; background:var(--surface); box-shadow:0 4px 0 var(--edge)}
+.level:active{transform:translateY(3px); box-shadow:0 1px 0 var(--edge)}
+.level .name{font-size:1.7rem; font-weight:600}
+.level .desc{color:var(--muted)}
+.level .ex{margin-top:6px; background:var(--accent-soft); color:var(--accent-soft-fg); border-radius:12px; padding:6px 14px; font-size:1.4rem; font-weight:600; font-variant-numeric:tabular-nums}
+.level .best{font-size:.95rem; color:var(--muted)}
+.tables{display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.tbl{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:92px; padding:10px 6px; border:0; border-radius:20px; background:var(--surface); box-shadow:0 4px 0 var(--edge); font-size:2rem; font-weight:600; line-height:1}
+.tbl small{font-size:.85rem; font-weight:500; color:var(--muted)}
+.tbl:active{transform:translateY(3px); box-shadow:0 1px 0 var(--edge)}
+
+/* Branje ure */
+.clockcard{gap:0; padding:clamp(12px,3vh,28px) 16px}
+.bigclock{width:min(100%,clamp(220px,38vh,340px)); aspect-ratio:1}
+.bigclock svg,.opt svg{display:block; width:100%; height:100%}
+.digital{font-size:clamp(3.5rem,16vw,7rem); font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; padding:clamp(6px,2vh,20px) 0}
+.cface{fill:var(--surface); stroke:var(--fg); stroke-width:5}
+.ctick{stroke:var(--muted); stroke-width:1.5}
+.ctick5{stroke:var(--fg); stroke-width:3}
+.cnum{fill:var(--fg); font-family:var(--font); font-weight:600}
+.chour{stroke:var(--fg); stroke-width:9; stroke-linecap:round}
+.cmin{stroke:var(--accent); stroke-width:6; stroke-linecap:round}
+.ccap{fill:var(--action)}
+.opts{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:480px; margin:auto auto 0}
+.opts.sets{max-width:420px}
+.opt{min-height:clamp(72px,12vh,120px); padding:8px; border:0; border-radius:22px; background:var(--surface); box-shadow:0 4px 0 var(--edge); font-size:clamp(1.8rem,6vw,2.6rem); font-weight:600; font-variant-numeric:tabular-nums; display:grid; place-items:center}
+.opt.clockopt{min-height:0; aspect-ratio:1; padding:6px}
+.opt:not(:disabled):active{transform:translateY(3px); box-shadow:0 1px 0 var(--edge)}
+.opt[data-state="wrong"]{background:var(--try-bg); color:var(--try-fg)}
+.opt[data-state="right"]{background:var(--accent-soft); color:var(--accent-soft-fg); outline:4px solid var(--accent); outline-offset:-4px}
+.opts .next{grid-column:1/-1}
+
+/* Zaporedja */
+.expr.seq{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:100%; white-space:normal; letter-spacing:0; font-size:clamp(1.5rem,6.5vw,2.6rem); line-height:1.1}
+.tile{min-width:1.9em; padding:8px 10px; border-radius:14px; background:var(--accent-soft); color:var(--accent-soft-fg); text-align:center; font-variant-numeric:tabular-nums}
+.tile.gap{background:transparent; border:3px dashed var(--accent); color:var(--accent); padding:5px 7px}
+.fshape{stroke:var(--fg); stroke-width:2; stroke-linejoin:round}
+.fs0{fill:var(--accent)}
+.fs1{fill:var(--action)}
+.fs2{fill:var(--s1)}
+.fs3{fill:var(--s2)}
+.shapes{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:clamp(8px,3vh,28px) 0}
+.shp{width:clamp(34px,10vw,56px); aspect-ratio:1; display:grid; place-items:center}
+.shp svg{display:block; width:100%; height:100%}
+.shp.gap{border:3px dashed var(--accent); border-radius:14px; color:var(--accent); font-weight:600; font-size:1.6rem}
+.opt.shapeopt svg{width:auto; height:clamp(44px,8vh,64px)}
+.level .ex.shapesex{display:flex; align-items:center; gap:4px}
+.shapesex svg{width:24px; height:24px}
+.shapesex .qm{font-weight:600; padding-left:4px}
+
+/* Igra */
+.bar{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.count{font-weight:600; font-size:1.1rem; text-align:center}
+.earned{display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:52px; font-weight:600; font-size:1.25rem}
+.earned .ei{display:grid}
+.earned svg{width:30px; height:30px}
+.progress{height:14px; border-radius:7px; background:var(--surface-2); overflow:hidden}
+.progress>i{display:block; height:100%; border-radius:7px; background:var(--accent); transition:width .3s}
+.play{display:flex; flex-direction:column; gap:16px; flex:1}
+.stage{display:flex; flex-direction:column; gap:14px}
+.qcard{display:flex; flex-direction:column; align-items:center; gap:12px; background:var(--surface); border-radius:28px; box-shadow:0 5px 0 var(--edge); padding:clamp(18px,4vh,40px) 20px}
+.expr{font-size:clamp(3rem,13vw,6rem); font-weight:600; letter-spacing:.04em; line-height:1.05; font-variant-numeric:tabular-nums; white-space:nowrap}
+.ans{min-width:2.6em; text-align:center; border-bottom:5px solid var(--accent); color:var(--accent); font-size:clamp(2.8rem,11vw,5rem); font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums}
+.ans.empty{color:var(--muted)}
+.fb{min-height:68px; display:flex; align-items:center; gap:12px; border-radius:20px; padding:8px 16px 8px 10px; font-size:1.2rem; font-weight:600; background:var(--surface-2); color:var(--muted)}
+.fb .mi{display:grid; flex:none}
+.fb .mascot{width:54px; height:54px}
+.fb .ft{flex:1; min-width:0}
+.fb[data-state="ok"]{background:var(--accent-soft); color:var(--accent-soft-fg)}
+.fb[data-state="retry"],.fb[data-state="wrong"]{background:var(--try-bg); color:var(--try-fg)}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:480px; margin:auto auto 0}
+.key{height:clamp(56px,8.5vh,96px); padding:0; border:0; border-radius:20px; background:var(--surface); box-shadow:0 4px 0 var(--edge); font-size:clamp(1.8rem,5vh,2.6rem); font-weight:600; display:grid; place-items:center}
+.key:active{transform:translateY(3px); box-shadow:0 1px 0 var(--edge)}
+.key svg{width:34px; height:34px; fill:none; stroke:var(--fg); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round}
+.key.go{background:var(--action); color:var(--action-fg); box-shadow:0 4px 0 var(--action-deep); font-size:clamp(1.1rem,3.2vh,1.5rem)}
+.key.go:active{box-shadow:0 1px 0 var(--action-deep)}
+@media (min-width:820px){
+  .play{display:grid; grid-template-columns:1fr minmax(340px,460px); gap:40px; align-items:center}
+  .pad,.opts{margin:0}
+  .key{height:clamp(72px,11vh,100px)}
+}
+
+/* Nove igre: besedila, kovanci, ulomki, liki, spomin, tabela */
+.expr.word{font-size:clamp(1.3rem,4.6vw,2.1rem); white-space:normal; letter-spacing:0; line-height:1.3; text-align:center; font-weight:500; text-wrap:balance}
+.expr.eq{font-size:clamp(2.2rem,9vw,4.4rem); white-space:normal; letter-spacing:.02em; text-align:center}
+.expr.seq.sm{font-size:clamp(1.1rem,4.6vw,1.9rem)}
+.coins{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 0}
+.coins[hidden]{display:none}
+.coin{display:grid; place-items:center; width:clamp(48px,12vw,68px); aspect-ratio:1; border-radius:50%; border:3px solid #5A4A1E; font-weight:600; font-size:clamp(.8rem,2.6vw,1rem); color:#2A1D05; background:#E9C14A}
+.coin.c0{background:#D58A5B; border-color:#7A4524}
+.coin.c2{background:#EAD9A0; border-color:#8A8A8A; box-shadow:inset 0 0 0 5px #D9B33F}
+.coin.note{border-radius:8px; aspect-ratio:2/1; width:clamp(76px,19vw,106px); border-color:#3C4A52; font-size:clamp(1rem,3.4vw,1.4rem)}
+.coin.n500{background:#B9C3C6}
+.coin.n1000{background:#E9A9A3}
+.coin.n2000{background:#8FB7E8}
+.coin.n5000{background:#F0B27A}
+.cmp{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:14px; font-size:clamp(1.8rem,8.5vw,3.8rem); font-weight:600; font-variant-numeric:tabular-nums; padding:clamp(6px,2vh,18px) 0}
+.cmp .qm{min-width:1.3em; text-align:center; border:3px dashed var(--accent); border-radius:14px; color:var(--accent); padding:0 6px}
+.opt.txt{font-size:clamp(1.1rem,4.4vw,1.7rem)}
+.frac{display:inline-flex; flex-direction:column; align-items:center; line-height:1.05}
+.frac i{font-style:normal; padding:0 10px}
+.frac i+i{border-top:4px solid currentColor}
+.pie{width:min(70%,clamp(150px,30vh,240px)); aspect-ratio:1}
+.pie svg,.bigshape svg{display:block; width:100%; height:100%}
+.pslice{fill:var(--surface-2); stroke:var(--fg); stroke-width:3; stroke-linejoin:round}
+.pslice.on{fill:var(--action)}
+.bigshape{width:min(70%,clamp(130px,26vh,220px)); aspect-ratio:1}
+.poly{fill:var(--accent-soft); stroke:var(--accent); stroke-width:2.5; stroke-linejoin:round}
+.mem{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; width:100%; max-width:680px; margin:0 auto}
+.mcard{aspect-ratio:1/1.05; min-width:0; padding:4px; border:0; border-radius:18px; display:grid; place-items:center; background:var(--accent); color:var(--accent-fg); box-shadow:0 4px 0 var(--accent-deep); font-size:clamp(1.1rem,4.4vw,2rem); font-weight:600; font-variant-numeric:tabular-nums; text-align:center; overflow:hidden}
+.mcard[data-state="up"]{background:var(--surface); color:var(--fg); box-shadow:0 4px 0 var(--edge)}
+.mcard[data-state="done"]{background:var(--accent-soft); color:var(--accent-soft-fg); box-shadow:none; outline:4px solid var(--accent); outline-offset:-4px}
+.mcard svg{display:block; width:100%; height:100%}
+.mcard .back{font-size:clamp(1.6rem,6vw,2.6rem); opacity:.85}
+.banner{background:var(--surface); border-radius:20px; box-shadow:0 3px 0 var(--edge); padding:14px 18px; font-size:clamp(1.4rem,6vw,2.4rem); font-weight:600; text-align:center; font-variant-numeric:tabular-nums}
+.mtab{display:grid; grid-template-columns:repeat(11,minmax(0,1fr)); gap:3px; width:100%; max-width:760px; margin:0 auto}
+.mh{display:grid; place-items:center; font-weight:600; color:var(--accent); font-size:clamp(.8rem,3vw,1.3rem)}
+.mc{border:0; padding:clamp(5px,1.6vw,12px) 0; border-radius:8px; background:var(--surface); box-shadow:0 2px 0 var(--edge); font-weight:600; font-size:clamp(.72rem,2.7vw,1.2rem); font-variant-numeric:tabular-nums}
+.mc.in{background:var(--accent-soft); color:var(--accent-soft-fg)}
+.mc.on{background:var(--action); color:var(--action-fg); box-shadow:0 2px 0 var(--action-deep)}
+
+/* Note, garderoba, pregled za starše */
+.stl{stroke:var(--fg); stroke-width:1.4; fill:none; stroke-linecap:round}
+.nhead{fill:var(--fg)}
+.staff{width:min(100%,520px)}
+.staff svg{display:block; width:100%; height:auto}
+.wardrobe{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,170px),1fr)); gap:12px}
+.ward{display:flex; flex-direction:column; align-items:center; gap:4px; padding:14px 10px; border:0; border-radius:22px; background:var(--surface); box-shadow:0 4px 0 var(--edge); text-align:center}
+.ward .mascot{width:96px; height:96px}
+.ward .t{font-weight:600; font-size:1.05rem}
+.ward .d{color:var(--muted); font-size:.95rem}
+.ward.locked{opacity:.65}
+.ward[aria-pressed="true"]{outline:4px solid var(--accent); outline-offset:-4px}
+.prow{display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:var(--surface); border-radius:16px; padding:10px 14px; box-shadow:0 3px 0 var(--edge)}
+.prow .nm{flex:1 1 180px; font-weight:600}
+.prow .nm small{display:block; font-weight:400; color:var(--muted)}
+.prow .bar2{flex:0 1 140px; width:140px; height:12px; border-radius:6px; background:var(--surface-2); overflow:hidden}
+.prow .bar2 i{display:block; height:100%; background:var(--accent)}
+.prow.weak .bar2 i{background:var(--action)}
+.prow .val{min-width:4.2em; text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+.plist{display:grid; gap:8px}
+
+/* Rezultat */
+.result{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; margin:auto 0; background:var(--surface); border-radius:28px; box-shadow:0 5px 0 var(--edge); padding:clamp(24px,5vh,48px) 20px}
+.result .mascot{width:120px; height:120px}
+.score{font-size:clamp(3.5rem,16vw,6rem); font-weight:600; color:var(--accent); line-height:1; font-variant-numeric:tabular-nums}
+.starrow{display:flex; flex-wrap:wrap; justify-content:center; gap:6px}
+.starrow .s{display:grid}
+.starrow svg{width:clamp(22px,7vw,36px); height:clamp(22px,7vw,36px)}
+.starrow .s:not(.on) .pb{fill:none; stroke:var(--muted)}
+.starrow .s:not(.on) .ps{display:none}
+.actions{display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:8px}
+
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px)}}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.pop{animation:pop .45s ease}
+.shake{animation:shake .35s ease}
+.fb[data-state="ok"] .mascot,.result .mascot{animation:hop .6s ease}
+.fb[data-state="retry"] .mascot,.fb[data-state="wrong"] .mascot{animation:wobble .5s ease}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<noscript>Za igro je potreben vklopljen JavaScript.</noscript>
+
+<script>
+(function () {
+  'use strict';
+
+  var app = document.getElementById('app');
+
+  /* ---------- Shranjevanje (samo na tej napravi) ---------- */
+  var KEY = 'matematicno-igrisce-v1';
+  var save = { name: '', stars: 0, streak: 0, lastDay: '', sound: true, best: {} };
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var loaded = JSON.parse(raw);
+      if (loaded && typeof loaded === 'object') { for (var k in loaded) save[k] = loaded[k]; }
+    }
+  } catch (e) {}
+  save.name = String(save.name || '');
+  save.stars = Number(save.stars) || 0;   // število biserov (ime polja ostane zaradi že shranjenega napredka)
+  save.streak = Number(save.streak) || 0;
+  save.lastDay = String(save.lastDay || '');
+  save.hat = String(save.hat || '');
+  if (!save.best || typeof save.best !== 'object') save.best = {};
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+  function dayKey(d) {
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function currentStreak() {
+    var now = new Date(), y = new Date();
+    y.setDate(y.getDate() - 1);
+    return (save.lastDay === dayKey(now) || save.lastDay === dayKey(y)) ? save.streak : 0;
+  }
+  function recordPlay() {
+    var now = new Date(), y = new Date();
+    y.setDate(y.getDate() - 1);
+    var today = dayKey(now);
+    if (save.lastDay === today) return;
+    save.streak = (save.lastDay === dayKey(y)) ? save.streak + 1 : 1;
+    save.lastDay = today;
+  }
+
+  /* ---------- Pomožne funkcije ---------- */
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    var p = props || {};
+    for (var k in p) {
+      var v = p[k];
+      if (v === false || v == null) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (k.indexOf('on') === 0) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var kid = arguments[i];
+      if (kid == null || kid === false) continue;
+      if (Array.isArray(kid)) { for (var j = 0; j < kid.length; j++) el.append(kid[j]); continue; }
+      el.append(kid);
+    }
+    return el;
+  }
+  function biserov(n) { var m = n % 100; if (m === 1) return 'biser'; if (m === 2) return 'bisera'; if (m === 3 || m === 4) return 'biseri'; return 'biserov'; }
+  function dni(n) { var m = n % 100; if (m === 1) return 'dan'; if (m === 2) return 'dneva'; return 'dni'; }
+
+  var teardown = null;
+  function setView(nodes, td) {
+    if (teardown) { teardown(); teardown = null; }
+    app.replaceChildren.apply(app, nodes);
+    teardown = td || null;
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Ikone ---------- */
+  function svg(cls, body) { return '<svg class="' + cls + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + body + '</svg>'; }
+  var ICON = {
+    pearl: '<svg class="pearl" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle class="pb" cx="12" cy="12" r="9"/><ellipse class="ps" cx="8.8" cy="8.6" rx="2.8" ry="1.6" transform="rotate(-35 8.8 8.6)"/></svg>',
+    back: svg('', '<path d="M15 5l-7 7 7 7"/>'),
+    edit: svg('', '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>'),
+    soundOn: svg('', '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9a4 4 0 010 6M19 6.5a8 8 0 010 11"/>'),
+    soundOff: svg('', '<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/>'),
+    del: svg('', '<path d="M9 5h11v14H9L3 12z"/><path d="M12 9l5 6M17 9l-5 6"/>'),
+    hat: svg('', '<path d="M6 17h12M8 17c0-6 1.5-10 4-10s4 4 4 10"/><path d="M12 7V4"/>'),
+    chart: svg('', '<path d="M5 20V11M12 20V5M19 20v-7"/>'),
+    cal: svg('cal', '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M9 15l2 2 4-4"/>')
+  };
+  var BIG = {
+    plusminus: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M14 21h14M21 14v14"/><path class="b" d="M28 41h14"/></svg>',
+    times: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M18 18l20 20M38 18L18 38"/></svg>',
+    clock: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle class="a" cx="28" cy="28" r="15"/><path class="a" d="M28 19v9l6 4"/></svg>',
+    divide: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M14 28h28"/><path class="b" d="M28 15v.01M28 41v.01"/></svg>',
+    seq: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M10 44h12V32h12V20h8"/><path class="b" d="M46 12v.01"/></svg>',
+    hash: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M22 12l-4 32M38 12l-4 32"/><path class="b" d="M12 23h32M10 35h32"/></svg>',
+    coin: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle class="a" cx="28" cy="28" r="16"/><path class="b" d="M33 22a8 8 0 100 12M21 26h11M21 31h11"/></svg>',
+    book: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M10 15h14a4 4 0 014 4v23a4 4 0 00-4-4H10zM46 15H32a4 4 0 00-4 4v23a4 4 0 014-4h14z"/></svg>',
+    ruler: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M8 22h40v13H8z"/><path class="b" d="M16 22v6M24 22v8M32 22v6M40 22v8"/></svg>',
+    calendar: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M11 15h34v29H11zM11 25h34"/><path class="b" d="M20 10v7M36 10v7"/></svg>',
+    pie: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle class="a" cx="28" cy="28" r="16"/><path class="b" d="M28 28V12M28 28l12 12"/></svg>',
+    tri: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M28 11L45 42H11z"/><path class="b" d="M28 11v.01"/></svg>',
+    abc: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M12 42l9-26 9 26M16 33h10"/><path class="b" d="M40 28v14M40 20v.01"/></svg>',
+    cards: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M12 18h18v24H12z"/><path class="b" d="M26 14h18v24H26z"/></svg>',
+    bolt: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M31 9L16 32h11l-2 15 15-24H29z"/></svg>',
+    grid: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M12 12h32v32H12zM12 23h32M12 34h32"/><path class="b" d="M23 12v32M34 12v32"/></svg>',
+    note: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path class="a" d="M22 40V14l18-4v26"/><circle class="b" cx="17" cy="41" r="5"/><circle class="b" cx="35" cy="37" r="5"/></svg>',
+    timer: '<svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle class="a" cx="28" cy="31" r="15"/><path class="b" d="M28 31V22M23 10h10"/></svg>'
+  };
+
+  /* ---------- Ura s kazalci ---------- */
+  function clockSVG(hr, mn) {
+    var s = '<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle class="cface" cx="100" cy="100" r="94"/>';
+    for (var t = 0; t < 60; t++) {
+      var a = t * 6 * Math.PI / 180, big = t % 5 === 0, r1 = big ? 80 : 85, r2 = 90;
+      s += '<line class="' + (big ? 'ctick5' : 'ctick') + '" x1="' + (100 + r1 * Math.sin(a)).toFixed(1) + '" y1="' + (100 - r1 * Math.cos(a)).toFixed(1) +
+        '" x2="' + (100 + r2 * Math.sin(a)).toFixed(1) + '" y2="' + (100 - r2 * Math.cos(a)).toFixed(1) + '"/>';
+    }
+    for (var n = 1; n <= 12; n++) {
+      var b = n * 30 * Math.PI / 180;
+      s += '<text class="cnum" x="' + (100 + 64 * Math.sin(b)).toFixed(1) + '" y="' + (100 - 64 * Math.cos(b) + 8).toFixed(1) + '" text-anchor="middle" font-size="22">' + n + '</text>';
+    }
+    var ha = (hr % 12) * 30 + mn * 0.5, ma = mn * 6;
+    s += '<line class="chour" x1="100" y1="100" x2="100" y2="58" transform="rotate(' + ha + ' 100 100)"/>';
+    s += '<line class="cmin" x1="100" y1="100" x2="100" y2="34" transform="rotate(' + ma + ' 100 100)"/>';
+    s += '<circle class="ccap" cx="100" cy="100" r="7"/></svg>';
+    return s;
+  }
+
+  /* ---------- Maskota Hobi (izvirna hobotnica) ---------- */
+  var EYES_OPEN =
+    '<circle class="oe" cx="40" cy="52" r="10"/><circle class="oe" cx="80" cy="52" r="10"/>' +
+    '<circle class="op" cx="42" cy="54" r="5"/><circle class="op" cx="82" cy="54" r="5"/>' +
+    '<circle class="oh" cx="44" cy="52" r="1.8"/><circle class="oh" cx="84" cy="52" r="1.8"/>';
+  // mood: 'happy' | 'cheer' | 'oops'
+  function octopus(mood, hat) {
+    var eyes = EYES_OPEN, mouth, brows = '';
+    if (mood === 'cheer') {
+      eyes = '<path class="oa" d="M31 54q9-11 18 0M71 54q9-11 18 0"/>';
+      mouth = '<path class="om" d="M49 63q11 20 22 0z"/>';
+    } else if (mood === 'oops') {
+      brows = '<path class="oa" d="M30 38l17 6M90 38l-17 6"/>';
+      mouth = '<path class="oa" d="M52 71q8-8 16 0"/>';
+    } else {
+      mouth = '<path class="oa" d="M50 64q10 10 20 0"/>';
+    }
+    return '<svg class="mascot" viewBox="0 0 120 120" aria-hidden="true" focusable="false">' +
+      '<path class="ot" d="M30 70c-7 14 3 22-7 36"/><path class="ot" d="M48 74c-3 16 6 22-1 34"/>' +
+      '<path class="ot" d="M72 74c3 16-6 22 1 34"/><path class="ot" d="M90 70c7 14-3 22 7 36"/>' +
+      '<path class="ob" d="M60 8C88 8 102 30 102 52c0 14-6 22-12 28H30c-6-6-12-14-12-28C18 30 32 8 60 8z"/>' +
+      '<circle class="od" cx="46" cy="24" r="4"/><circle class="od" cx="74" cy="20" r="3"/><circle class="od" cx="62" cy="34" r="2.5"/>' +
+      '<ellipse class="oc" cx="29" cy="66" rx="6" ry="4"/><ellipse class="oc" cx="91" cy="66" rx="6" ry="4"/>' +
+      eyes + brows + mouth + (HATS[hat == null ? save.hat : hat] || '') + '</svg>';
+  }
+
+  /* ---------- Zvok ---------- */
+  var ac = null;
+  function beep(kind) {
+    if (!save.sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      var seqs = {
+        ok: [[660, 0], [880, 0.12]],
+        wrong: [[240, 0]],
+        done: [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36]]
+      };
+      var t = ac.currentTime;
+      (seqs[kind] || []).forEach(function (n) {
+        var osc = ac.createOscillator(), g = ac.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.15, t + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.24);
+        osc.connect(g); g.connect(ac.destination);
+        osc.start(t + n[1]); osc.stop(t + n[1] + 0.26);
+      });
+    } catch (e) {}
+  }
+
+  /* ---------- Računi (generator) ---------- */
+  /*GEN-START*/
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+  // level: 'easy' = brez prehoda čez desetico, 'hard' = s prehodom, 'mixed' = oboje
+  function makeQuestion(level) {
+    var want = level === 'mixed' ? (Math.random() < 0.5 ? 'easy' : 'hard') : level;
+    for (var n = 0; n < 1000; n++) {
+      var a, b, carry;
+      if (Math.random() < 0.5) {
+        a = rnd(11, 89); b = rnd(2, 89);
+        if (a + b > 100) continue;
+        carry = (a % 10) + (b % 10) >= 10;
+        if (want === 'easy' && carry) continue;
+        if (want === 'hard' && !carry) continue;
+        if (a % 10 === 0 && b % 10 === 0 && Math.random() < 0.85) continue;
+        return { a: a, b: b, op: '+', ans: a + b };
+      } else {
+        a = rnd(21, 99); b = rnd(2, a - 1);
+        carry = (a % 10) < (b % 10);
+        if (want === 'easy' && carry) continue;
+        if (want === 'hard' && !carry) continue;
+        if (a % 10 === 0 && b % 10 === 0 && Math.random() < 0.85) continue;
+        return { a: a, b: b, op: '-', ans: a - b };
+      }
+    }
+    return { a: 43, b: 25, op: '+', ans: 68 };
+  }
+
+  function makeRound(level, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 2000) {
+      var q = makeQuestion(level), key = q.a + q.op + q.b;
+      if (seen[key]) continue;
+      seen[key] = true; out.push(q);
+    }
+    return out;
+  }
+  // Poštevanka: vsaj ena številka je iz izbranih poštevank, druga je od 2 do 10, vrstni red je naključen
+  function makeMulRound(tables, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var t = tables[rnd(0, tables.length - 1)], m = rnd(2, 10);
+      var swap = Math.random() < 0.5;
+      var a = swap ? m : t, b = swap ? t : m;
+      var key = a + '*' + b;
+      if (seen[key]) continue;
+      seen[key] = true;
+      out.push({ a: a, b: b, op: '*', ans: a * b });
+    }
+    return out;
+  }
+  // Deljenje brez ostanka iz poštevank: zmnožek delimo z enim od obeh faktorjev
+  function makeDivRound(tables, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var t = tables[rnd(0, tables.length - 1)], m = rnd(2, 10);
+      var p = t * m, d = Math.random() < 0.5 ? t : m;
+      var key = p + '/' + d;
+      if (seen[key]) continue;
+      seen[key] = true;
+      out.push({ a: p, b: d, op: '/', ans: p / d });
+    }
+    return out;
+  }
+  // Branje ure: vsako vprašanje ima 4 možnosti, ena je pravilna.
+  // mode 'read': ura s kazalci, izbereš čas. mode 'set': dan je čas, izbereš uro s kazalci.
+  var CLOCK_MIN = { ure: [0], pol: [0, 15, 30, 45], pet: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55] };
+  function fmtTime(h, m) { return h + ':' + (m < 10 ? '0' : '') + m; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = rnd(0, i), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function makeClockQuestion(level, mode) {
+    var mins = CLOCK_MIN[level];
+    var h = rnd(1, 12), m = mins[rnd(0, mins.length - 1)];
+    var cand = [], seen = {};
+    seen[h + ':' + m] = true;
+    function add(hh, mm) {
+      if (hh < 1) hh += 12;
+      if (hh > 12) hh -= 12;
+      if (mins.indexOf(mm) < 0) return;
+      var k = hh + ':' + mm;
+      if (seen[k]) return;
+      seen[k] = true;
+      cand.push({ h: hh, m: mm });
+    }
+    add(m === 0 ? 12 : m / 5, (h * 5) % 60);   // pogosta zmota: zamenjana kazalca
+    add(h + 1, m); add(h - 1, m); add(h + 2, m);
+    mins.forEach(function (mm) { add(h, mm); });
+    var guard = 0;
+    while (cand.length < 3 && guard++ < 200) add(rnd(1, 12), mins[rnd(0, mins.length - 1)]);
+    var options = shuffle(cand).slice(0, 3);
+    options.push({ h: h, m: m });
+    shuffle(options);
+    var correct = 0;
+    options.forEach(function (o, idx) { if (o.h === h && o.m === m) correct = idx; });
+    return { mode: mode, h: h, m: m, options: options, correct: correct };
+  }
+
+  function makeClockRound(level, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var q = makeClockQuestion(level, Math.random() < 0.5 ? 'read' : 'set'), key = q.mode + q.h + ':' + q.m;
+      if (seen[key]) continue;
+      seen[key] = true; out.push(q);
+    }
+    return out;
+  }
+  // Zaporedja števil: 5 členov, en (ne prvi) manjka
+  function arith(start, step, len) { var t = []; for (var i = 0; i < len; i++) t.push(start + step * i); return t; }
+
+  // level: 'easy' = enak korak naprej, 'mid' = naprej ali nazaj z večjimi koraki,
+  // 'hard' = podvajanje, izmenična koraka ali koraki, ki rastejo za 1
+  function makeSeqQuestion(level) {
+    var len = 5, terms, i;
+    if (level === 'easy') {
+      var s1 = [1, 2, 3, 5, 10][rnd(0, 4)];
+      terms = arith(rnd(0, Math.min(30, 100 - s1 * (len - 1))), s1, len);
+    } else if (level === 'mid') {
+      var s2 = rnd(2, 9), down = Math.random() < 0.5;
+      terms = down ? arith(rnd(s2 * (len - 1), 100), -s2, len) : arith(rnd(0, 100 - s2 * (len - 1)), s2, len);
+    } else {
+      var kind = rnd(0, 2);
+      if (kind === 0) {              // podvajanje
+        terms = [rnd(1, 5)];
+        for (i = 1; i < len; i++) terms.push(terms[i - 1] * 2);
+      } else if (kind === 1) {       // izmenična koraka
+        var a = rnd(1, 5), b = rnd(1, 5);
+        while (b === a) b = rnd(1, 5);
+        terms = [rnd(0, 30)];
+        for (i = 1; i < len; i++) terms.push(terms[i - 1] + (i % 2 === 1 ? a : b));
+      } else {                       // koraki, ki rastejo za 1
+        var d = rnd(1, 3);
+        terms = [rnd(0, 20)];
+        for (i = 1; i < len; i++) terms.push(terms[i - 1] + d + i - 1);
+      }
+    }
+    var idx = rnd(1, len - 1), seq = terms.slice(), ans = seq[idx];
+    seq[idx] = null;
+    return { seq: seq, ans: ans };
+  }
+
+  function makeSeqRound(level, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var q = makeSeqQuestion(level), key = q.seq.join(',') + ':' + q.ans;
+      if (seen[key]) continue;
+      seen[key] = true; out.push(q);
+    }
+    return out;
+  }
+
+  // Logična zaporedja likov (0 krog, 1 trikotnik, 2 kvadrat, 3 romb): vzorec se ponavlja, izbereš naslednji lik
+  var SHAPE_PATTERNS = { easy: ['AB', 'AAB', 'ABB'], hard: ['ABC', 'AABB', 'ABAC', 'AABC'] };
+  function makeShapeQuestion(level) {
+    var pats = SHAPE_PATTERNS[level], p = pats[rnd(0, pats.length - 1)];
+    var kinds = shuffle([0, 1, 2, 3]);
+    var unit = p.split('').map(function (c) { return kinds[c.charCodeAt(0) - 65]; });
+    var len = unit.length * 2 + rnd(0, unit.length - 1), seq = [];
+    for (var i = 0; i < len; i++) seq.push(unit[i % unit.length]);
+    var ans = unit[len % unit.length];
+    var options = shuffle([0, 1, 2, 3]);
+    return { pat: p, seq: seq, ans: ans, options: options, correct: options.indexOf(ans) };
+  }
+
+  function makeShapeRound(level, n) {
+    var seen = {}, out = [], guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var q = makeShapeQuestion(level), key = q.seq.join('') + ':' + q.ans;
+      if (seen[key]) continue;
+      seen[key] = true; out.push(q);
+    }
+    return out;
+  }
+  /* ---------- Generatorji za nove module ---------- */
+  function pick(a) { return a[rnd(0, a.length - 1)]; }
+  function uniqueRound(make, n, keyFn) {
+    var out = [], seen = {}, guard = 0;
+    while (out.length < n && guard++ < 3000) {
+      var q = make(), k = keyFn(q);
+      if (seen[k]) continue;
+      seen[k] = 1; out.push(q);
+    }
+    return out;
+  }
+  function dnevi(n) { return n === 1 ? 'dan' : n === 2 ? 'dneva' : 'dni'; }
+  function kol(n, f) { var m = n % 100; return n + ' ' + f[m === 1 ? 0 : m === 2 ? 1 : (m === 3 || m === 4) ? 2 : 3]; }
+
+  /* Manjkajoče število */
+  function makeMissingQuestion(level) {
+    var max = level === 'easy' ? 50 : 100;
+    var kind = level === 'mul' ? pick(['*', '/']) : pick(['+', '-']);
+    var a, b, c, hide = rnd(0, 1), text, ans;
+    if (kind === '+') {
+      c = rnd(10, max); a = rnd(1, c - 1); b = c - a;
+      text = hide ? a + ' + ? = ' + c : '? + ' + b + ' = ' + c; ans = hide ? b : a;
+    } else if (kind === '-') {
+      a = rnd(10, max); b = rnd(1, a - 1); c = a - b;
+      text = hide ? a + ' − ? = ' + c : '? − ' + b + ' = ' + c; ans = hide ? b : a;
+    } else if (kind === '*') {
+      a = rnd(2, 10); b = rnd(2, 10); c = a * b;
+      text = hide ? a + ' × ? = ' + c : '? × ' + b + ' = ' + c; ans = hide ? b : a;
+    } else {
+      a = rnd(2, 10); b = rnd(2, 10); c = a * b;
+      text = hide ? c + ' ÷ ? = ' + a : '? ÷ ' + b + ' = ' + a; ans = hide ? b : c;
+    }
+    return { prompt: text, eq: true, ans: ans };
+  }
+  function makeMissingRound(level, n) { return uniqueRound(function () { return makeMissingQuestion(level); }, n, function (q) { return q.prompt; }); }
+
+  /* Desetice in enice */
+  function makeTensQuestion(level) {
+    var n, t, e, k;
+    if (level === 'sestavi') {
+      do { n = rnd(11, 99); } while (n % 10 === 0);
+      t = n - n % 10; e = n % 10; k = rnd(0, 3);
+      if (k === 0) return { prompt: 'Koliko desetic je v ' + n + '?', eq: false, ans: t / 10 };
+      if (k === 1) return { prompt: n + ' = ' + t + ' + ?', eq: true, ans: e };
+      if (k === 2) return { prompt: n + ' = ? + ' + e, eq: true, ans: t };
+      return { prompt: (t / 10) + ' × 10 + ' + e + ' = ?', eq: true, ans: n };
+    }
+    if (level === 'zaokrozi') {
+      do { n = rnd(11, 99); } while (n % 10 === 0);
+      return { prompt: 'Zaokroži ' + n + ' na desetice.', eq: false, ans: Math.floor((n + 5) / 10) * 10 };
+    }
+    k = rnd(0, 3);
+    if (k === 0) { n = rnd(12, 98); return { prompt: 'Katero število je pred ' + n + '?', eq: false, ans: n - 1 }; }
+    if (k === 1) { n = rnd(12, 98); return { prompt: 'Katero število je za ' + n + '?', eq: false, ans: n + 1 }; }
+    if (k === 2) { n = rnd(12, 90); return { prompt: '10 več kot ' + n + ' je ?', eq: false, ans: n + 10 }; }
+    n = rnd(12, 98); return { prompt: '10 manj kot ' + n + ' je ?', eq: false, ans: n - 10 };
+  }
+  function makeTensRound(level, n) { return uniqueRound(function () { return makeTensQuestion(level); }, n, function (q) { return q.prompt; }); }
+
+  /* Primerjanje: možnosti so vedno <, =, > */
+  function cmpOf(x, y) { return x < y ? 0 : x === y ? 1 : 2; }
+  function exprFor(v) {
+    var r = rnd(0, 2), s, f = [], d;
+    if (r === 0 && v >= 2) { s = rnd(1, v - 1); return (v - s) + ' + ' + s; }
+    if (r === 1 && v <= 99) { s = rnd(1, Math.min(100 - v, 40)); return (v + s) + ' − ' + s; }
+    if (r === 2) {
+      for (d = 2; d <= 10; d++) if (v % d === 0 && v / d >= 2 && v / d <= 10) f.push(d);
+      if (f.length) { d = pick(f); return (v / d) + ' × ' + d; }
+    }
+    return String(v);
+  }
+  function makeCompareQuestion(level) {
+    var l, r, ls, rs;
+    if (level === 'easy') {
+      l = rnd(1, 100);
+      r = rnd(0, 9) === 0 ? l : rnd(0, 2) === 0 ? Math.max(1, Math.min(100, l + rnd(-9, 9))) : rnd(1, 100);
+      ls = String(l); rs = String(r);
+    } else {
+      do {
+        l = rnd(5, 95);
+        r = rnd(0, 3) === 0 ? l : Math.max(2, Math.min(99, l + pick([-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6])));
+        ls = exprFor(l); rs = exprFor(r);
+      } while (ls === rs);
+    }
+    return { left: ls, right: rs, options: ['<', '=', '>'], correct: cmpOf(l, r) };
+  }
+  function makeCompareRound(level, n) { return uniqueRound(function () { return makeCompareQuestion(level); }, n, function (q) { return q.left + '|' + q.right; }); }
+
+  /* Denar */
+  var CENT_COINS = [1, 2, 5, 10, 20, 50];
+  var EURO_COINS = [100, 200, 500, 1000, 2000, 5000];
+  function makeMoneyQuestion(level) {
+    var coins, sum, n, i, price, paid;
+    if (level === 'cent' || level === 'evro') {
+      var pool = level === 'cent' ? CENT_COINS : EURO_COINS, lim = level === 'cent' ? 99 : 10000;
+      do {
+        n = rnd(3, 5); coins = []; sum = 0;
+        for (i = 0; i < n; i++) { var c = pick(pool); coins.push(c); sum += c; }
+      } while (sum > lim);
+      coins.sort(function (a, b) { return b - a; });
+      return level === 'cent'
+        ? { prompt: 'Koliko centov je skupaj?', coins: coins, ans: sum }
+        : { prompt: 'Koliko evrov je skupaj?', coins: coins, ans: sum / 100 };
+    }
+    if (level === 'drobiz1') {
+      price = rnd(1, 19) * 5;
+      return { prompt: 'Kupiš za ' + price + ' c. Plačaš z 1 €. Koliko centov drobiža dobiš?', ans: 100 - price };
+    }
+    paid = pick([5, 10, 20]); price = rnd(1, paid - 1);
+    return { prompt: 'Kupiš za ' + price + ' €. Plačaš z ' + paid + ' €. Koliko evrov drobiža dobiš?', ans: paid - price };
+  }
+  function makeMoneyRound(level, n) { return uniqueRound(function () { return makeMoneyQuestion(level); }, n, function (q) { return q.prompt + (q.coins ? q.coins.join(',') : ''); }); }
+
+  /* Besedilne naloge (predmet je vedno v 4. sklonu ali za "koliko": zato slovnica ustreza) */
+  var NOUN = {
+    biser: ['biser', 'bisera', 'bisere', 'biserov'],
+    skoljka: ['školjko', 'školjki', 'školjke', 'školjk'],
+    jabolko: ['jabolko', 'jabolki', 'jabolka', 'jabolk'],
+    bonbon: ['bonbon', 'bonbona', 'bonbone', 'bonbonov'],
+    vrecka: ['vrečko', 'vrečki', 'vrečke', 'vreč'],
+    prijatelj: ['prijatelja', 'prijatelja', 'prijatelje', 'prijateljev']
+  };
+  var WORD_ADD = [
+    function (a, b) { return 'Hobi ima ' + kol(a, NOUN.biser) + '. Najde še ' + kol(b, NOUN.biser) + '. Koliko biserov ima zdaj?'; },
+    function (a, b) { return 'Hobi nabere ' + kol(a, NOUN.skoljka) + ' na morju. Popoldne nabere še ' + kol(b, NOUN.skoljka) + '. Koliko školjk ima skupaj?'; },
+    function (a, b) { return 'Hobi poje ' + kol(a, NOUN.jabolko) + ', njegov prijatelj pa ' + kol(b, NOUN.jabolko) + '. Koliko jabolk pojeta skupaj?'; }
+  ];
+  var WORD_SUB = [
+    function (a, b) { return 'Hobi ima ' + kol(a, NOUN.biser) + '. Podari ' + kol(b, NOUN.biser) + ' prijateljici. Koliko biserov mu ostane?'; },
+    function (a, b) { return 'Hobi nabere ' + kol(a, NOUN.skoljka) + '. Izgubi ' + kol(b, NOUN.skoljka) + '. Koliko školjk mu ostane?'; },
+    function (a, b) { return 'Hobi ima ' + kol(a, NOUN.jabolko) + '. Poje ' + kol(b, NOUN.jabolko) + '. Koliko jabolk mu ostane?'; }
+  ];
+  var WORD_MUL = [
+    function (a, b) { return 'Hobi ima ' + kol(a, NOUN.skoljka) + '. Vsaka školjka skriva ' + kol(b, NOUN.biser) + '. Koliko biserov je skupaj?'; },
+    function (a, b) { return 'Hobi kupi ' + kol(a, NOUN.vrecka) + '. Vsaka vrečka vsebuje ' + kol(b, NOUN.bonbon) + '. Koliko bonbonov je skupaj?'; },
+    function (a, b) { return 'Hobi poje vsak dan ' + kol(b, NOUN.jabolko) + '. Koliko jabolk poje v ' + a + ' dneh?'; }
+  ];
+  var WORD_DIV = [
+    function (p, d) { return 'Hobi razdeli ' + kol(p, NOUN.biser) + ' med ' + kol(d, NOUN.prijatelj) + '. Vsak dobi enako. Koliko biserov dobi vsak?'; },
+    function (p, d) { return 'Mama razdeli ' + kol(p, NOUN.bonbon) + ' v ' + kol(d, NOUN.vrecka) + ' tako, da je v vsaki enako število. Koliko bonbonov je v vsaki vrečki?'; },
+    function (p, d) { return 'Hobi ima ' + kol(p, NOUN.biser) + '. V vsako školjko skrije ' + kol(d, NOUN.biser) + '. Koliko školjk napolni?'; }
+  ];
+  function makeWordQuestion(level) {
+    var a, b, k, p;
+    if (level === 'mul') {
+      if (rnd(0, 1)) { a = rnd(2, 10); b = rnd(2, 10); return { prompt: pick(WORD_MUL)(a, b), eq: false, ans: a * b }; }
+      b = rnd(2, 10); k = rnd(2, 10); p = b * k;
+      var i = rnd(0, 2);
+      /* tretja predloga: delitelj je vedno drugi argument; rezultat je količnik */
+      return { prompt: WORD_DIV[i](p, b), eq: false, ans: k };
+    }
+    var easy = level === 'easy';
+    if (rnd(0, 1)) {
+      if (easy) { a = rnd(2, 18); b = rnd(1, 20 - a); } else { a = rnd(10, 89); b = rnd(5, 100 - a); }
+      return { prompt: pick(WORD_ADD)(a, b), eq: false, ans: a + b };
+    }
+    if (easy) { a = rnd(5, 20); b = rnd(1, a - 1); } else { a = rnd(20, 100); b = rnd(5, a - 5); }
+    return { prompt: pick(WORD_SUB)(a, b), eq: false, ans: a - b };
+  }
+  function makeWordRound(level, n) { return uniqueRound(function () { return makeWordQuestion(level); }, n, function (q) { return q.prompt; }); }
+
+  /* Merjenje */
+  function makeMeasureQuestion(level) {
+    var n, f = rnd(0, 3);
+    if (level === 'dolzina') {
+      if (f === 0) { n = rnd(1, 9); return { prompt: n + ' m = ? cm', eq: true, ans: n * 100 }; }
+      if (f === 1) { n = rnd(1, 9); return { prompt: (n * 100) + ' cm = ? m', eq: true, ans: n }; }
+      if (f === 2) { n = rnd(2, 50); return { prompt: n + ' cm = ? mm', eq: true, ans: n * 10 }; }
+      n = rnd(2, 50); return { prompt: (n * 10) + ' mm = ? cm', eq: true, ans: n };
+    }
+    if (level === 'masa') {
+      if (f === 0) { n = rnd(2, 50); return { prompt: n + ' l = ? dl', eq: true, ans: n * 10 }; }
+      if (f === 1) { n = rnd(2, 50); return { prompt: (n * 10) + ' dl = ? l', eq: true, ans: n }; }
+      if (f === 2) { n = rnd(1, 9); return { prompt: n + ' kg = ? dag', eq: true, ans: n * 100 }; }
+      n = rnd(1, 9); return { prompt: (n * 100) + ' dag = ? kg', eq: true, ans: n };
+    }
+    if (f === 0) { n = rnd(1, 9); return { prompt: n + ' h = ? min', eq: true, ans: n * 60 }; }
+    if (f === 1) { n = rnd(1, 9); return { prompt: (n * 60) + ' min = ? h', eq: true, ans: n }; }
+    if (f === 2) { n = rnd(1, 9); return { prompt: n + ' min = ? s', eq: true, ans: n * 60 }; }
+    n = rnd(1, 4); return { prompt: n + ' ' + dnevi(n) + ' = ? ur', eq: true, ans: n * 24 };
+  }
+  function makeMeasureRound(level, n) { return uniqueRound(function () { return makeMeasureQuestion(level); }, n, function (q) { return q.prompt; }); }
+
+  /* Koledar (navadno leto) */
+  var DAYS = ['ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota', 'nedelja'];
+  var MONTHS = ['januar', 'februar', 'marec', 'april', 'maj', 'junij', 'julij', 'avgust', 'september', 'oktober', 'november', 'december'];
+  var MLEN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  function nameOptions(arr, correctIdx) {
+    var others = shuffle(arr.map(function (_, i) { return i; }).filter(function (i) { return i !== correctIdx; })).slice(0, 3);
+    var opts = shuffle([correctIdx].concat(others)).map(function (i) { return arr[i]; });
+    return { options: opts, correct: opts.indexOf(arr[correctIdx]) };
+  }
+  function makeCalendarQuestion(level) {
+    var arr, start, gap, tiles, i, o, today, k, len = [28, 29, 30, 31], m;
+    if (level === 'cez') {
+      today = rnd(0, 6); k = rnd(1, 10);
+      o = nameOptions(DAYS, (today + k) % 7);
+      return { prompt: 'Danes je ' + DAYS[today] + '. Kateri dan bo čez ' + k + ' ' + (k === 1 ? 'dan' : 'dni') + '?', options: o.options, correct: o.correct };
+    }
+    if (level === 'meseci' && rnd(0, 3) === 0) {
+      m = rnd(0, 11);
+      return { prompt: 'Koliko dni ima ' + MONTHS[m] + '?' + (m === 1 ? ' (navadno leto)' : ''), options: ['28', '29', '30', '31'], correct: len.indexOf(MLEN[m]) };
+    }
+    arr = level === 'dnevi' ? DAYS : MONTHS;
+    start = rnd(0, arr.length - 1); gap = rnd(0, 3); tiles = [];
+    for (i = 0; i < 4; i++) tiles.push(i === gap ? null : arr[(start + i) % arr.length]);
+    o = nameOptions(arr, (start + gap) % arr.length);
+    return { tiles: tiles, options: o.options, correct: o.correct };
+  }
+  function makeCalendarRound(level, n) { return uniqueRound(function () { return makeCalendarQuestion(level); }, n, function (q) { return q.prompt || q.tiles.join(','); }); }
+
+  /* Ulomki */
+  var FR_N = { easy: [2, 4], hard: [3, 5, 6, 8] };
+  function makeFractionQuestion(level) {
+    var n = pick(FR_N[level]), k = rnd(1, n - 1), off = rnd(0, n - 1);
+    var ns = [2, 3, 4, 5, 6, 8], near = [], far = [], j, k2, chosen = [[k, n]], picks = [];
+    for (j = 0; j < ns.length; j++) for (k2 = 1; k2 < ns[j]; k2++) {
+      if (k2 * n === k * ns[j]) continue;
+      (ns[j] === n || k2 === k ? near : far).push([k2, ns[j]]);
+    }
+    shuffle(near); shuffle(far);
+    var cand = near.concat(far);
+    for (j = 0; j < cand.length && picks.length < 3; j++) {
+      var dup = false;
+      for (var t = 0; t < chosen.length; t++) if (chosen[t][0] * cand[j][1] === cand[j][0] * chosen[t][1]) dup = true;
+      if (!dup) { picks.push(cand[j]); chosen.push(cand[j]); }
+    }
+    var options = shuffle([[k, n]].concat(picks)), correct = 0;
+    for (j = 0; j < options.length; j++) if (options[j][0] === k && options[j][1] === n) correct = j;
+    return { n: n, k: k, off: off, options: options, correct: correct };
+  }
+  function makeFractionRound(level, n) { return uniqueRound(function () { return makeFractionQuestion(level); }, n, function (q) { return q.n + ':' + q.k + ':' + q.off; }); }
+  var FRAC_OF = {
+    easy: [['Polovica', 2, 40], ['Četrtina', 4, 40]],
+    hard: [['Tretjina', 3, 30], ['Petina', 5, 50], ['Desetina', 10, 100], ['Polovica', 2, 100], ['Četrtina', 4, 100]]
+  };
+  function makeFracOfQuestion(level) {
+    var d = pick(FRAC_OF[level]), n = d[1] * rnd(2, Math.floor(d[2] / d[1]));
+    return { prompt: d[0] + ' od ' + n + ' je ?', eq: false, ans: n / d[1] };
+  }
+  function makeFracOfRound(level, n) { return uniqueRound(function () { return makeFracOfQuestion(level); }, n, function (q) { return q.prompt; }); }
+
+  /* Liki */
+  var POLYS = [{ name: 'krog', n: 0 }, { name: 'trikotnik', n: 3 }, { name: 'kvadrat', n: 4 }, { name: 'pravokotnik', n: 4 }, { name: 'peterokotnik', n: 5 }, { name: 'šestkotnik', n: 6 }];
+  function makePolyQuestion(level) {
+    var rot = pick([0, 90, 180, 270]), p, names = POLYS.map(function (x) { return x.name; }), o;
+    if (level === 'ime') {
+      p = pick(POLYS);
+      o = nameOptions(names, names.indexOf(p.name));
+      return { shape: p.name, rot: rot, ask: 'ime', options: o.options, correct: o.correct };
+    }
+    p = pick(POLYS.filter(function (x) { return x.n > 0; }));
+    return { shape: p.name, rot: rot, ask: pick(['stranic', 'oglišč']), options: ['3', '4', '5', '6'], correct: p.n - 3 };
+  }
+  function makePolyRound(level, n) { return uniqueRound(function () { return makePolyQuestion(level); }, n, function (q) { return q.shape + q.rot + q.ask; }); }
+
+  /* Črkovanje: * je manjkajoča črka */
+  var LETTER_WORDS = {
+    'č': ['*ebela', '*okolada', '*rv', '*ešnja', '*evlji', 'ra*un', 've*er', 'o*ala', 'lon*ek'],
+    'š': ['*ola', '*opek', '*otor', '*ah', '*torklja', '*koljka', 'le*nik', 'pi*kot', 'kro*nja'],
+    'ž': ['*aba', '*oga', '*ival', '*irafa', '*lica', '*elva', 'ko*uh', 'dru*ina', 'bo*ič'],
+    'c': ['ko*ka', '*opat', 'ov*a', '*irkus'],
+    's': ['*once', '*neg', '*ladoled', '*lon', '*ova', 'u*ta', 'ko*t', 'o*el', 'ma*lo', 'li*t'],
+    'z': ['*ebra', '*vezda', '*ima', '*ajec', '*lato', '*vok', '*vezek', 'vo*']
+  };
+  var LETTER_PARTNER = { 'č': 'c', 'c': 'č', 'š': 's', 's': 'š', 'ž': 'z', 'z': 'ž' };
+  function makeLetterQuestion(level) {
+    var all = ['č', 'š', 'ž', 'c', 's', 'z'];
+    var groups = level === 'a' ? ['č', 'š', 'ž'] : level === 'b' ? ['c', 's', 'z'] : all;
+    var L = pick(groups), pat = pick(LETTER_WORDS[L]), options;
+    if (level === 'a') options = ['č', 'š', 'ž'];
+    else if (level === 'b') options = ['c', 's', 'z'];
+    else {
+      var rest = shuffle(all.filter(function (x) { return x !== L && x !== LETTER_PARTNER[L]; })).slice(0, 2);
+      options = shuffle([L, LETTER_PARTNER[L]].concat(rest));
+    }
+    return { pat: pat, letters: pat.split('').map(function (ch) { return ch === '*' ? null : ch; }), ans: L, options: options, correct: options.indexOf(L) };
+  }
+  function makeLetterRound(level, n) { return uniqueRound(function () { return makeLetterQuestion(level); }, n, function (q) { return q.pat; }); }
+
+  /* Spomin: 6 parov = 12 kart */
+  var NUMW = ['', 'ena', 'dve', 'tri', 'štiri', 'pet', 'šest', 'sedem', 'osem', 'devet', 'deset', 'enajst', 'dvanajst'];
+  function makeMemoryCards(level) {
+    var pairs = [], used = {}, i, a, b, r, text, cards = [], ns, hh, mm, key;
+    if (level === 'besede') {
+      ns = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]).slice(0, 6);
+      for (i = 0; i < 6; i++) pairs.push([{ t: String(ns[i]) }, { t: NUMW[ns[i]] }]);
+    } else if (level === 'racuni') {
+      while (pairs.length < 6) {
+        var op = pick(['+', '-', '*']);
+        if (op === '+') { a = rnd(2, 20); b = rnd(2, 20); r = a + b; text = a + ' + ' + b; }
+        else if (op === '-') { a = rnd(6, 30); b = rnd(2, a - 1); r = a - b; text = a + ' − ' + b; }
+        else { a = rnd(2, 9); b = rnd(2, 9); r = a * b; text = a + ' × ' + b; }
+        if (used[r]) continue;
+        used[r] = 1; pairs.push([{ t: text }, { t: String(r) }]);
+      }
+    } else {
+      while (pairs.length < 6) {
+        hh = rnd(1, 12); mm = pick(CLOCK_MIN.pol); key = hh + ':' + mm;
+        if (used[key]) continue;
+        used[key] = 1; pairs.push([{ clock: [hh, mm] }, { t: fmtTime(hh, mm) }]);
+      }
+    }
+    for (i = 0; i < pairs.length; i++) {
+      cards.push({ pair: i, t: pairs[i][0].t, clock: pairs[i][0].clock });
+      cards.push({ pair: i, t: pairs[i][1].t, clock: pairs[i][1].clock });
+    }
+    return shuffle(cards);
+  }
+
+  /* Mešani izziv: 10 različnih nalog za številčnico */
+  function makeMixedRound() {
+    var all = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+    return shuffle([].concat(
+      makeRound('mixed', 2), makeMulRound(all, 2), makeDivRound(all, 2),
+      makeMissingRound('easy', 1), makeSeqRound('easy', 1), makeTensRound('sosedje', 1), makeWordRound('easy', 1)
+    ));
+  }
+  /* Note v violinskem ključu: p = 0 je spodnja črta (E), vsak korak je pol razmika */
+  var NOTE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
+  function makeNoteQuestion(level) {
+    var lo = level === 'easy' ? -1 : -2, hi = level === 'easy' ? 9 : 10, p = rnd(lo, hi);
+    var ans = NOTE_NAMES[((p + 2) % 7 + 7) % 7];
+    var options = shuffle([ans].concat(shuffle(NOTE_NAMES.filter(function (x) { return x !== ans; })).slice(0, 3)));
+    return { p: p, ans: ans, options: options, correct: options.indexOf(ans) };
+  }
+  function makeNoteRound(level, n) { return uniqueRound(function () { return makeNoteQuestion(level); }, n, function (q) { return String(q.p); }); }
+
+  /* Hitro računanje: dolg seznam nalog, igra se omeji s časom */
+  function makeSpeedRound(kind) {
+    var all = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+    if (kind === 'plus') return makeRound('mixed', 60);
+    if (kind === 'mul') return shuffle(makeMulRound(all, 40).concat(makeDivRound(all, 40)));
+    return shuffle(makeRound('mixed', 30).concat(makeMulRound(all, 25), makeDivRound(all, 25)));
+  }
+  /*GEN-END*/
+
+  /* ---------- Moduli ----------
+     Nov modul: dodaj vnos v MODULES. "open" je funkcija, ki nariše zaslon modula
+     (z setView) in se vrne domov z viewHome(). Vnos brez "open" je prikazan kot "Kmalu". */
+  var MODULES = [
+    { id: 'racunanje', title: 'Seštevanje in odštevanje', sub: 'Števila do 100', icon: 'plusminus', open: function () { viewLevels(); } },
+    { id: 'mnozenje', title: 'Množenje', sub: 'Poštevanka do 10 × 10', icon: 'times', open: function () { viewTables(MUL); } },
+    { id: 'deljenje', title: 'Deljenje', sub: 'Obratno od poštevanke', icon: 'divide', open: function () { viewTables(DIV); } },
+    { id: 'ura', title: 'Branje ure', sub: 'Ure in minute', icon: 'clock', open: function () { viewClockLevels(); } },
+    { id: 'zaporedja', title: 'Zaporedja', sub: 'Števila in liki', icon: 'seq', open: function () { viewSeqMenu(); } },
+    { id: 'stevila', title: 'Števila', sub: 'Desetice, primerjanje, manjkajoče število', icon: 'hash', open: function () { viewNumbersMenu(); } },
+    { id: 'denar', title: 'Denar', sub: 'Evri, centi in drobiž', icon: 'coin', open: function () { viewMoneyMenu(); } },
+    { id: 'besedilne', title: 'Besedilne naloge', sub: 'Zgodbice s Hobijem', icon: 'book', open: function () { viewWordMenu(); } },
+    { id: 'merjenje', title: 'Merjenje', sub: 'Dolžina, teža, prostornina in čas', icon: 'ruler', open: function () { viewMeasureMenu(); } },
+    { id: 'koledar', title: 'Koledar', sub: 'Dnevi in meseci', icon: 'calendar', open: function () { viewCalendarMenu(); } },
+    { id: 'ulomki', title: 'Ulomki', sub: 'Polovica, četrtina in drugi deli', icon: 'pie', open: function () { viewFractionMenu(); } },
+    { id: 'liki', title: 'Liki', sub: 'Imena, stranice in oglišča', icon: 'tri', open: function () { viewShapeMenu(); } },
+    { id: 'crkovanje', title: 'Črkovanje', sub: 'č, š, ž, c, s, z', icon: 'abc', open: function () { viewLetterMenu(); } },
+    { id: 'spomin', title: 'Spomin', sub: 'Poišči pare', icon: 'cards', open: function () { viewMemoryMenu(); } },
+    { id: 'izziv', title: 'Mešani izziv', sub: '10 različnih nalog', icon: 'bolt', open: function () { startGame({ key: 'izziv', round: makeMixedRound, back: viewHome, backLabel: 'Domov' }); } },
+    { id: 'note', title: 'Branje not', sub: 'Violinski ključ in klavir', icon: 'note', open: function () { viewNoteMenu(); } },
+    { id: 'hitro', title: 'Hitro računanje', sub: '60 sekund, koliko zmoreš?', icon: 'timer', open: function () { viewSpeedMenu(); } },
+    { id: 'tabela', title: 'Tabela poštevanke', sub: 'Pomoč pri učenju', icon: 'grid', open: function () { viewTimesTable(); } }
+  ];
+
+  var MODULE_GROUPS = [
+    { title: 'Računanje', ids: ['racunanje', 'mnozenje', 'deljenje', 'stevila', 'besedilne', 'denar'] },
+    { title: 'Čas, mere in liki', ids: ['ura', 'koledar', 'merjenje', 'liki', 'ulomki'] },
+    { title: 'Logika, jezik in glasba', ids: ['zaporedja', 'crkovanje', 'spomin', 'note'] },
+    { title: 'Vaja', ids: ['izziv', 'hitro', 'tabela'] }
+  ];
+
+  /* ---------- Začetni zaslon ---------- */
+  function viewHome(opts) {
+    var nameInput = h('input', { id: 'ime', type: 'text', maxlength: '20', autocomplete: 'off', value: save.name });
+    var form = h('form', {
+      class: 'nameform', hidden: !(opts && opts.editName),
+      onsubmit: function (e) {
+        e.preventDefault();
+        save.name = nameInput.value.trim().slice(0, 20);
+        persist(); viewHome();
+      }
+    }, h('label', { for: 'ime' }, 'Kako ti je ime?'), nameInput, h('button', { class: 'btn', type: 'submit' }, 'Shrani'));
+
+    var nameBtn = h('button', {
+      class: 'icon-btn', type: 'button', 'aria-label': 'Spremeni ime', title: 'Spremeni ime', html: ICON.edit,
+      onclick: function () { form.hidden = !form.hidden; if (!form.hidden) nameInput.focus(); }
+    });
+    var soundBtn = h('button', {
+      class: 'icon-btn', type: 'button', 'aria-pressed': String(save.sound),
+      'aria-label': save.sound ? 'Zvok je vklopljen' : 'Zvok je izklopljen',
+      title: save.sound ? 'Izklopi zvok' : 'Vklopi zvok',
+      html: save.sound ? ICON.soundOn : ICON.soundOff,
+      onclick: function () { save.sound = !save.sound; persist(); viewHome(); }
+    });
+
+    var hatBtn = h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Hobijeva garderoba', title: 'Garderoba', html: ICON.hat, onclick: function () { viewWardrobe(); } });
+    var chartBtn = h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Pregled za starše', title: 'Za starše', html: ICON.chart, onclick: function () { viewParents(); } });
+    var streak = currentStreak();
+    var hint = (save.stars === 0 && streak === 0)
+      ? 'Živijo! Sem Hobi. Pomagaj mi zbirati bisere!'
+      : streak > 1
+        ? 'Spet si tu! Že ' + streak + ' ' + dni(streak) + ' zapored računava.'
+        : 'Super, da si spet tu! Pojdiva računat.';
+    var buddy = h('section', { class: 'buddy' }, h('span', { html: octopus('happy'), style: 'display:grid' }), h('p', { class: 'bubble' }, hint));
+
+    var stats = h('section', { class: 'stats' },
+      h('div', { class: 'stat' }, h('span', { class: 'ic', html: ICON.pearl }),
+        h('div', null, h('b', null, String(save.stars)), h('span', { class: 'lbl' }, biserov(save.stars)))),
+      h('div', { class: 'stat' }, h('span', { class: 'ic', html: ICON.cal }),
+        h('div', null, h('b', null, String(streak)), h('span', { class: 'lbl' }, dni(streak) + ' zapored'))));
+
+    var byId = {};
+    MODULES.forEach(function (m) { byId[m.id] = m; });
+    var groupNodes = [];
+    MODULE_GROUPS.forEach(function (g) {
+      groupNodes.push(h('h2', null, g.title));
+      groupNodes.push(h('section', { class: 'modules' }, g.ids.map(function (id) {
+        var m = byId[id];
+        return h('button', { class: 'module', type: 'button', disabled: !m.open, onclick: m.open },
+          h('span', { class: 'ico', html: BIG[m.icon] }),
+          h('span', null, h('span', { class: 't' }, m.title), h('span', { class: 'd' }, m.sub)));
+      })));
+    });
+
+    setView([
+      h('header', { class: 'top' },
+        h('div', null, h('p', { class: 'hello' }, save.name ? 'Živijo, ' + save.name + '!' : 'Živijo!'), h('h1', null, 'Matematično igrišče')),
+        h('div', { class: 'tools' }, hatBtn, chartBtn, nameBtn, soundBtn)),
+      form,
+      buddy,
+      stats
+    ].concat(groupNodes));
+  }
+
+  /* ---------- Modul: seštevanje in odštevanje ---------- */
+  var LEVELS = [
+    { id: 'easy', name: 'Lažje', desc: 'Brez prehoda čez desetico', ex: '43 + 25' },
+    { id: 'hard', name: 'Težje', desc: 'S prehodom čez desetico', ex: '47 + 38' },
+    { id: 'mixed', name: 'Mešano', desc: 'Lažji in težji računi skupaj', ex: '62 − 28' }
+  ];
+
+  function viewLevels() {
+    var cards = LEVELS.map(function (l) {
+      var best = save.best[l.id];
+      return h('button', { class: 'level', type: 'button', onclick: function () { startGame({ key: l.id, round: function () { return makeRound(l.id, 10); }, back: viewLevels, backLabel: 'Druga težavnost' }); } },
+        h('span', { class: 'name' }, l.name),
+        h('span', { class: 'desc' }, l.desc),
+        h('span', { class: 'ex' }, l.ex),
+        h('span', { class: 'best' }, best != null ? 'Najboljši rezultat: ' + best + ' od 10' : 'Še nisi igral'));
+    });
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Seštevanje in odštevanje')),
+      h('p', { class: 'sub' }, 'Izberi težavnost. Krog ima 10 računov.'),
+      h('section', { class: 'levels' }, cards)
+    ]);
+  }
+
+  /* ---------- Modul: množenje ---------- */
+  var MUL = { prefix: 'mul', title: 'Množenje', sym: '×', aria: 'Poštevanka ', round: function (t) { return makeMulRound(t, 10); }, exEasy: '5 × 6', exAll: '7 × 8', descEasy: 'Poštevanke 2, 5 in 10', descAll: 'Vse poštevanke od 2 do 10' };
+  var DIV = { prefix: 'div', title: 'Deljenje', sym: '÷', aria: 'Deljenje, poštevanka ', round: function (t) { return makeDivRound(t, 10); }, exEasy: '30 ÷ 5', exAll: '56 ÷ 7', descEasy: 'Iz poštevank 2, 5 in 10', descAll: 'Iz vseh poštevank od 2 do 10' };
+
+  function tableCfg(spec, key, tables) {
+    return { key: key, round: function () { return spec.round(tables); }, back: function () { viewTables(spec); }, backLabel: 'Druga poštevanka' };
+  }
+
+  function viewTables(spec) {
+    var all = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+    var presets = [
+      { key: spec.prefix + '-easy', name: 'Lažje', desc: spec.descEasy, ex: spec.exEasy, tables: [2, 5, 10] },
+      { key: spec.prefix + '-all', name: 'Vse', desc: spec.descAll, ex: spec.exAll, tables: all }
+    ];
+    var presetCards = presets.map(function (p) {
+      var best = save.best[p.key];
+      return h('button', { class: 'level', type: 'button', onclick: function () { startGame(tableCfg(spec, p.key, p.tables)); } },
+        h('span', { class: 'name' }, p.name),
+        h('span', { class: 'desc' }, p.desc),
+        h('span', { class: 'ex' }, p.ex),
+        h('span', { class: 'best' }, best != null ? 'Najboljši rezultat: ' + best + ' od 10' : 'Še nisi igral'));
+    });
+    var tableCards = all.map(function (t) {
+      var key = spec.prefix + '-' + t, best = save.best[key];
+      return h('button', { class: 'tbl', type: 'button', 'aria-label': spec.aria + t, onclick: function () { startGame(tableCfg(spec, key, [t])); } },
+        spec.sym + t, h('small', null, best != null ? best + ' od 10' : 'novo'));
+    });
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, spec.title)),
+      h('p', { class: 'sub' }, 'Izberi poštevanko. Krog ima 10 računov.'),
+      h('section', { class: 'levels' }, presetCards),
+      h('h2', null, 'Posamezna poštevanka'),
+      h('section', { class: 'tables' }, tableCards)
+    ]);
+  }
+
+  /* ---------- Modul: branje ure ---------- */
+  var CLOCK_LEVELS = [
+    { id: 'ure', name: 'Cele ure', desc: 'Dolgi kazalec kaže na 12', ex: '3:00' },
+    { id: 'pol', name: 'Pol in četrt ure', desc: 'Minute: 0, 15, 30 in 45', ex: '4:30' },
+    { id: 'pet', name: 'Na 5 minut', desc: 'Minute: 5, 10, 15 ... 55', ex: '8:25' }
+  ];
+
+  function clockCfg(level) {
+    return { kind: 'clock', key: 'clock-' + level, round: function () { return makeClockRound(level, 10); }, back: viewClockLevels, backLabel: 'Druga težavnost' };
+  }
+
+  function viewClockLevels() {
+    var cards = CLOCK_LEVELS.map(function (l) {
+      var best = save.best['clock-' + l.id];
+      return h('button', { class: 'level', type: 'button', onclick: function () { startGame(clockCfg(l.id)); } },
+        h('span', { class: 'name' }, l.name),
+        h('span', { class: 'desc' }, l.desc),
+        h('span', { class: 'ex' }, l.ex),
+        h('span', { class: 'best' }, best != null ? 'Najboljši rezultat: ' + best + ' od 10' : 'Še nisi igral'));
+    });
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Branje ure')),
+      h('p', { class: 'sub' }, 'Kratek kazalec kaže ure, dolgi kazalec pa minute. Krog ima 10 vprašanj.'),
+      h('section', { class: 'levels' }, cards)
+    ]);
+  }
+
+  function startChoiceGame(cfg) {
+    var qs = cfg.round();
+    if (window.__MATH_TEST__) window.__MATH_TEST__.qs = qs;
+    var total = qs.length;
+    var i = 0, tries = 0, locked = false, firstTry = 0, opts = [], curView = null;
+
+    var ref = {};
+    ref.count = h('span', { class: 'count' });
+    ref.earnedIcon = h('span', { class: 'ei', html: ICON.pearl });
+    ref.earnedNum = h('b', null, '0');
+    ref.fill = h('i');
+    ref.stage = h('div', { class: 'qcard clockcard' });
+    ref.fbIcon = h('span', { class: 'mi' });
+    ref.fbText = h('span', { class: 'ft' });
+    ref.fb = h('div', { class: 'fb', 'data-state': 'idle', role: 'status', 'aria-live': 'polite' }, ref.fbIcon, ref.fbText);
+    ref.opts = h('section', { class: 'opts' });
+    ref.next = h('button', { class: 'key go next', type: 'button', hidden: true, onclick: function () { next(); } }, 'Naprej');
+
+    function setFb(state, text) {
+      ref.fb.setAttribute('data-state', state);
+      ref.fbIcon.innerHTML = octopus(MOODS[state]);
+      ref.fbText.textContent = text;
+    }
+    function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+    function renderQ() {
+      var q = qs[i];
+      tries = 0; locked = false;
+      ref.count.textContent = 'Vprašanje ' + (i + 1) + ' od ' + total;
+      ref.fill.style.width = (i / total * 100) + '%';
+      ref.next.hidden = true;
+      curView = (cfg.view || clockView)(q);
+      ref.stage.replaceChildren(curView.stage);
+      opts = curView.options.map(function (o, idx) {
+        return h('button', {
+          class: 'opt' + curView.optClass, type: 'button',
+          'aria-label': o.label || null,
+          html: o.html || null,
+          onclick: function () { choose(idx); }
+        }, o.text || null);
+      });
+      ref.opts.className = 'opts' + curView.optsClass;
+      ref.opts.replaceChildren.apply(ref.opts, opts.concat([ref.next]));
+      setFb('idle', curView.idle);
+    }
+    function lockRound() {
+      locked = true;
+      ref.fill.style.width = ((i + 1) / total * 100) + '%';
+      opts.forEach(function (b) { b.disabled = true; });
+      ref.next.textContent = i === total - 1 ? 'Končaj' : 'Naprej';
+      ref.next.hidden = false;
+      try { ref.next.focus({ preventScroll: true }); } catch (e) {}
+    }
+    function choose(idx) {
+      if (locked || opts[idx].disabled) return;
+      var q = qs[i];
+      if (idx === q.correct) {
+        if (tries === 0) { firstTry++; ref.earnedNum.textContent = String(firstTry); retrigger(ref.earnedIcon, 'pop'); }
+        opts[idx].setAttribute('data-state', 'right');
+        setFb('ok', PRAISE[rnd(0, PRAISE.length - 1)]);
+        beep('ok');
+        lockRound();
+      } else if (tries === 0) {
+        tries = 1;
+        opts[idx].setAttribute('data-state', 'wrong');
+        opts[idx].disabled = true;
+        setFb('retry', 'Skoraj! Poskusi še enkrat.');
+        beep('wrong');
+      } else {
+        opts[idx].setAttribute('data-state', 'wrong');
+        opts[q.correct].setAttribute('data-state', 'right');
+        setFb('wrong', curView.reveal + ' Naslednjič ti bo uspelo!');
+        beep('wrong');
+        lockRound();
+      }
+    }
+    function next() {
+      if (i >= total - 1) { finish(); return; }
+      i++; renderQ();
+    }
+    function finish() {
+      save.stars += firstTry;
+      recordPlay();
+      if (save.best[cfg.key] == null || firstTry > save.best[cfg.key]) save.best[cfg.key] = firstTry;
+      persist();
+      beep('done');
+      viewResult(cfg, firstTry, total);
+    }
+
+    function onKey(e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (/^[1-4]$/.test(e.key)) choose(Number(e.key) - 1);
+      else if (e.key === 'Enter') {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        if (locked) next();
+      }
+    }
+    document.addEventListener('keydown', onKey);
+
+    var earned = h('span', { class: 'earned', 'aria-label': 'Biseri v tem krogu' }, ref.earnedIcon, ref.earnedNum);
+    var backBtn = h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na izbiro', title: 'Nazaj', html: ICON.back, onclick: function () { cfg.back(); } });
+
+    setView([
+      h('header', { class: 'bar' }, backBtn, ref.count, earned),
+      h('div', { class: 'progress', role: 'presentation' }, ref.fill),
+      h('div', { class: 'play' },
+        h('section', { class: 'stage' }, ref.stage, ref.fb),
+        ref.opts)
+    ], function () { document.removeEventListener('keydown', onKey); });
+
+    renderQ();
+  }
+
+  /* ---------- Pogledi za igre z izbiro (ura, liki) ----------
+     Pogled vrne: stage (vprašanje), options (besedilo ali SVG), idle (navodilo), reveal (pravilen odgovor). */
+  function clockView(q) {
+    var isRead = q.mode === 'read';
+    return {
+      stage: isRead
+        ? h('div', { class: 'bigclock', role: 'img', 'aria-label': 'Ura s kazalci', html: clockSVG(q.h, q.m) })
+        : h('div', { class: 'digital', 'aria-label': 'Ura ' + fmtTime(q.h, q.m) }, fmtTime(q.h, q.m)),
+      options: q.options.map(function (o, idx) {
+        return isRead ? { text: fmtTime(o.h, o.m) } : { html: clockSVG(o.h, o.m), label: 'Ura s kazalci, možnost ' + (idx + 1) };
+      }),
+      optClass: isRead ? '' : ' clockopt',
+      optsClass: isRead ? '' : ' sets',
+      idle: isRead ? 'Koliko je ura?' : 'Katera ura kaže ' + fmtTime(q.h, q.m) + '?',
+      reveal: 'Pravilen odgovor je ' + fmtTime(q.h, q.m) + '.'
+    };
+  }
+
+  var SHAPE_NAMES = ['krog', 'trikotnik', 'kvadrat', 'romb'];
+  function shapeSVG(kind) {
+    var body = [
+      '<circle class="fshape fs0" cx="20" cy="20" r="15"/>',
+      '<path class="fshape fs1" d="M20 5L36 34H4z"/>',
+      '<rect class="fshape fs2" x="6" y="6" width="28" height="28" rx="4"/>',
+      '<path class="fshape fs3" d="M20 3L37 20 20 37 3 20z"/>'
+    ][kind];
+    return '<svg class="shape" viewBox="0 0 40 40" aria-hidden="true" focusable="false">' + body + '</svg>';
+  }
+  function shapeView(q) {
+    var tiles = q.seq.map(function (k) { return h('span', { class: 'shp', html: shapeSVG(k) }); });
+    tiles.push(h('span', { class: 'shp gap' }, '?'));
+    return {
+      stage: h('div', { class: 'shapes', role: 'img', 'aria-label': 'Zaporedje likov: ' + q.seq.map(function (k) { return SHAPE_NAMES[k]; }).join(', ') + ', nato manjka lik' }, tiles),
+      options: q.options.map(function (k) { return { html: shapeSVG(k), label: SHAPE_NAMES[k] }; }),
+      optClass: ' shapeopt',
+      optsClass: '',
+      idle: 'Kateri lik pride naslednji?',
+      reveal: 'Pravilen odgovor je ' + SHAPE_NAMES[q.ans] + '.'
+    };
+  }
+
+  /* ---------- Modul: zaporedja ---------- */
+  var SEQ_NUM = [
+    { id: 'easy', name: 'Lažje', desc: 'Vedno enak korak naprej', ex: '5, 10, 15, ?' },
+    { id: 'mid', name: 'Težje', desc: 'Naprej in nazaj, večji koraki', ex: '48, 41, ?, 27' },
+    { id: 'hard', name: 'Zahtevnejše', desc: 'Podvajanje, izmenični in rastoči koraki', ex: '2, 4, 8, ?' }
+  ];
+  var SEQ_SHP = [
+    { id: 'easy', name: 'Lažje', desc: 'Vzorec iz dveh ali treh ponavljanj', pat: [0, 1, 0, 1] },
+    { id: 'hard', name: 'Težje', desc: 'Daljši vzorci, tudi s tremi liki', pat: [0, 1, 2, 0, 1, 2] }
+  ];
+
+  function seqNumCfg(level) {
+    return { key: 'seq-num-' + level, round: function () { return makeSeqRound(level, 10); }, back: viewSeqMenu, backLabel: 'Druga težavnost' };
+  }
+  function seqShpCfg(level) {
+    return { kind: 'choice', view: shapeView, key: 'seq-shp-' + level, round: function () { return makeShapeRound(level, 10); }, back: viewSeqMenu, backLabel: 'Druga težavnost' };
+  }
+
+  function viewSeqMenu() {
+    function bestText(key) { return save.best[key] != null ? 'Najboljši rezultat: ' + save.best[key] + ' od 10' : 'Še nisi igral'; }
+    var numCards = SEQ_NUM.map(function (l) {
+      return h('button', { class: 'level', type: 'button', onclick: function () { startGame(seqNumCfg(l.id)); } },
+        h('span', { class: 'name' }, l.name),
+        h('span', { class: 'desc' }, l.desc),
+        h('span', { class: 'ex' }, l.ex),
+        h('span', { class: 'best' }, bestText('seq-num-' + l.id)));
+    });
+    var shpCards = SEQ_SHP.map(function (l) {
+      return h('button', { class: 'level', type: 'button', onclick: function () { startGame(seqShpCfg(l.id)); } },
+        h('span', { class: 'name' }, l.name),
+        h('span', { class: 'desc' }, l.desc),
+        h('span', { class: 'ex shapesex', html: l.pat.map(function (k) { return shapeSVG(k); }).join('') + '<span class="qm">?</span>' }),
+        h('span', { class: 'best' }, bestText('seq-shp-' + l.id)));
+    });
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Zaporedja')),
+      h('p', { class: 'sub' }, 'Poišči pravilo in nadaljuj zaporedje. Krog ima 10 vprašanj.'),
+      h('h2', null, 'Števila'),
+      h('section', { class: 'levels' }, numCards),
+      h('h2', null, 'Liki'),
+      h('section', { class: 'levels' }, shpCards)
+    ]);
+  }
+
+  /* ---------- Splošen meni z izbiro težavnosti ----------
+     groups: [{ title?, items: [{ key, name, desc, ex, cfg(back) }] }] */
+  function viewMenu(title, sub, groups) {
+    function again() { viewMenu(title, sub, groups); }
+    var nodes = [
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, title)),
+      h('p', { class: 'sub' }, sub)
+    ];
+    groups.forEach(function (g) {
+      if (g.title) nodes.push(h('h2', null, g.title));
+      nodes.push(h('section', { class: 'levels' }, g.items.map(function (l) {
+        var best = save.best[l.key];
+        return h('button', { class: 'level', type: 'button', onclick: function () { startGame(l.cfg(again)); } },
+          h('span', { class: 'name' }, l.name),
+          h('span', { class: 'desc' }, l.desc),
+          h('span', { class: 'ex' }, l.ex),
+          h('span', { class: 'best' }, best != null ? 'Najboljši rezultat: ' + best + ' od 10' : 'Še nisi igral'));
+      })));
+    });
+    setView(nodes);
+  }
+  function kp(key, round) { return function (back) { return { key: key, round: round, back: back, backLabel: 'Druga težavnost' }; }; }
+  function ch(key, round, view) { return function (back) { return { kind: 'choice', view: view, key: key, round: round, back: back, backLabel: 'Druga težavnost' }; }; }
+
+  /* ---------- Pogledi za nove igre z izbiro ---------- */
+  function wordStage(q) { return h('div', { class: 'expr ' + (q.eq ? 'eq' : 'word') }, q.prompt); }
+  function tileRow(items, cls) {
+    return h('div', { class: 'expr seq ' + (cls || '') }, items.map(function (t) {
+      return h('span', { class: 'tile' + (t == null ? ' gap' : '') }, t == null ? '?' : String(t));
+    }));
+  }
+  var SIGN_LABEL = ['manjše', 'enako', 'večje'];
+  function compareView(q) {
+    return {
+      stage: h('div', { class: 'cmp', role: 'img', 'aria-label': q.left + ' ali ' + q.right }, h('span', null, q.left), h('span', { class: 'qm' }, '?'), h('span', null, q.right)),
+      options: q.options.map(function (s, i) { return { text: s, label: SIGN_LABEL[i] }; }),
+      optClass: '', optsClass: '',
+      idle: 'Katero znamenje manjka: manjše, enako ali večje?',
+      reveal: 'Pravilno je ' + q.options[q.correct] + '.'
+    };
+  }
+  function calView(q) {
+    var long = q.options.some(function (t) { return t.length > 2; });
+    return {
+      stage: q.tiles ? tileRow(q.tiles, 'sm') : wordStage(q),
+      options: q.options.map(function (t) { return { text: t }; }),
+      optClass: long ? ' txt' : '', optsClass: '',
+      idle: q.tiles ? 'Kaj manjka v zaporedju?' : 'Izberi pravilni odgovor.',
+      reveal: 'Pravilen odgovor je ' + q.options[q.correct] + '.'
+    };
+  }
+  function pieSVG(n, k, off) {
+    var s = '<svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">', i;
+    for (i = 0; i < n; i++) {
+      var a1 = (i / n) * 2 * Math.PI - Math.PI / 2, a2 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2;
+      var on = ((i - off + n) % n) < k;
+      s += '<path class="pslice' + (on ? ' on' : '') + '" d="M60 60L' + (60 + 54 * Math.cos(a1)).toFixed(2) + ' ' + (60 + 54 * Math.sin(a1)).toFixed(2) +
+        'A54 54 0 0 1 ' + (60 + 54 * Math.cos(a2)).toFixed(2) + ' ' + (60 + 54 * Math.sin(a2)).toFixed(2) + 'z"/>';
+    }
+    return s + '</svg>';
+  }
+  function fracHTML(k, n) { return '<span class="frac"><i>' + k + '</i><i>' + n + '</i></span>'; }
+  function fracView(q) {
+    return {
+      stage: h('div', { style: 'display:grid; place-items:center; gap:10px; width:100%' },
+        h('div', { class: 'pie', role: 'img', 'aria-label': 'Krog, razdeljen na ' + q.n + ' enakih delov, pobarvano je ' + q.k, html: pieSVG(q.n, q.k, q.off) }),
+        h('div', { class: 'expr word' }, 'Kolikšen del kroga je pobarvan?')),
+      options: q.options.map(function (o) { return { html: fracHTML(o[0], o[1]), label: o[0] + ' od ' + o[1] }; }),
+      optClass: '', optsClass: '',
+      idle: 'Koliko delov je pobarvanih in na koliko delov je razdeljen krog?',
+      reveal: 'Pravilen odgovor je ' + q.k + '/' + q.n + '.'
+    };
+  }
+  function polySVG(name, rot) {
+    var body, i, pts = [], n = { 'trikotnik': 3, 'peterokotnik': 5, 'šestkotnik': 6 }[name];
+    if (name === 'krog') body = '<circle class="poly" cx="20" cy="20" r="16"/>';
+    else if (name === 'kvadrat') body = '<rect class="poly" x="7" y="7" width="26" height="26"/>';
+    else if (name === 'pravokotnik') body = '<rect class="poly" x="3" y="10" width="34" height="20"/>';
+    else {
+      for (i = 0; i < n; i++) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; pts.push((20 + 17 * Math.cos(a)).toFixed(2) + ',' + (20 + 17 * Math.sin(a)).toFixed(2)); }
+      body = '<polygon class="poly" points="' + pts.join(' ') + '"/>';
+    }
+    return '<svg viewBox="0 0 40 40" aria-hidden="true" focusable="false"><g transform="rotate(' + rot + ' 20 20)">' + body + '</g></svg>';
+  }
+  function polyView(q) {
+    var ask = q.ask === 'ime' ? 'Kako se imenuje ta lik?' : 'Koliko ' + q.ask + ' ima ta lik?';
+    return {
+      stage: h('div', { style: 'display:grid; place-items:center; gap:10px; width:100%' },
+        h('div', { class: 'bigshape', 'data-shape': q.shape, role: 'img', 'aria-label': 'Lik', html: polySVG(q.shape, q.rot) }),
+        h('div', { class: 'expr word' }, ask)),
+      options: q.options.map(function (t) { return { text: t }; }),
+      optClass: q.ask === 'ime' ? ' txt' : '', optsClass: '',
+      idle: ask,
+      reveal: 'Pravilen odgovor je ' + q.options[q.correct] + '.'
+    };
+  }
+  function letterView(q) {
+    return {
+      stage: h('div', { style: 'display:grid; place-items:center; gap:10px; width:100%' },
+        tileRow(q.letters, ''), h('div', { class: 'expr word' }, 'Katera črka manjka?')),
+      options: q.options.map(function (t) { return { text: t }; }),
+      optClass: '', optsClass: '',
+      idle: 'Katera črka manjka v besedi?',
+      reveal: 'Manjka črka ' + q.ans + '.'
+    };
+  }
+
+  /* ---------- Menijski moduli ---------- */
+  function viewNumbersMenu() {
+    viewMenu('Števila', 'Desetice, primerjanje in manjkajoča števila. Krog ima 10 nalog.', [
+      { title: 'Desetice in enice', items: [
+        { key: 'ten-sestavi', name: 'Sestavi in razstavi', desc: 'Desetice in enice', ex: '47 = 40 + ?', cfg: kp('ten-sestavi', function () { return makeTensRound('sestavi', 10); }) },
+        { key: 'ten-zaokrozi', name: 'Zaokroževanje', desc: 'Na najbližjo deseticu', ex: '47 → 50', cfg: kp('ten-zaokrozi', function () { return makeTensRound('zaokrozi', 10); }) },
+        { key: 'ten-sosedje', name: 'Sosedje', desc: 'Pred, za, 10 več, 10 manj', ex: '10 več kot 34', cfg: kp('ten-sosedje', function () { return makeTensRound('sosedje', 10); }) }
+      ] },
+      { title: 'Primerjanje', items: [
+        { key: 'cmp-easy', name: 'Dve števili', desc: 'Manjše, enako ali večje', ex: '47 ? 52', cfg: ch('cmp-easy', function () { return makeCompareRound('easy', 10); }, compareView) },
+        { key: 'cmp-hard', name: 'Računi', desc: 'Najprej izračunaj, nato primerjaj', ex: '30 + 8 ? 5 × 8', cfg: ch('cmp-hard', function () { return makeCompareRound('hard', 10); }, compareView) }
+      ] },
+      { title: 'Manjkajoče število', items: [
+        { key: 'miss-easy', name: 'Do 50', desc: 'Seštevanje in odštevanje', ex: '? + 17 = 40', cfg: kp('miss-easy', function () { return makeMissingRound('easy', 10); }) },
+        { key: 'miss-hard', name: 'Do 100', desc: 'Seštevanje in odštevanje', ex: '83 − ? = 45', cfg: kp('miss-hard', function () { return makeMissingRound('hard', 10); }) },
+        { key: 'miss-mul', name: 'Množenje in deljenje', desc: 'Poštevanka do 10 × 10', ex: '? × 6 = 42', cfg: kp('miss-mul', function () { return makeMissingRound('mul', 10); }) }
+      ] }
+    ]);
+  }
+  function viewMoneyMenu() {
+    viewMenu('Denar', 'Seštej kovance in bankovce ter izračunaj drobiž. Krog ima 10 nalog.', [{ items: [
+      { key: 'money-cent', name: 'Centi', desc: 'Seštej kovance', ex: '20 c + 10 c + 5 c', cfg: kp('money-cent', function () { return makeMoneyRound('cent', 10); }) },
+      { key: 'money-evro', name: 'Evri', desc: 'Seštej kovance in bankovce', ex: '5 € + 2 € + 1 €', cfg: kp('money-evro', function () { return makeMoneyRound('evro', 10); }) },
+      { key: 'money-drobiz1', name: 'Drobiž v centih', desc: 'Plačaš z 1 €', ex: '1 € − 35 c', cfg: kp('money-drobiz1', function () { return makeMoneyRound('drobiz1', 10); }) },
+      { key: 'money-drobiz2', name: 'Drobiž v evrih', desc: 'Plačaš z bankovcem', ex: '10 € − 7 €', cfg: kp('money-drobiz2', function () { return makeMoneyRound('drobiz2', 10); }) }
+    ] }]);
+  }
+  function viewWordMenu() {
+    viewMenu('Besedilne naloge', 'Hobi ima za tebe zgodbice. Preberi in izračunaj. Krog ima 10 nalog.', [{ items: [
+      { key: 'word-easy', name: 'Do 20', desc: 'Seštevanje in odštevanje', ex: '8 + 5', cfg: kp('word-easy', function () { return makeWordRound('easy', 10); }) },
+      { key: 'word-mid', name: 'Do 100', desc: 'Seštevanje in odštevanje', ex: '46 + 27', cfg: kp('word-mid', function () { return makeWordRound('mid', 10); }) },
+      { key: 'word-mul', name: 'Množenje in deljenje', desc: 'Enake skupine in delitev', ex: '4 × 6', cfg: kp('word-mul', function () { return makeWordRound('mul', 10); }) }
+    ] }]);
+  }
+  function viewMeasureMenu() {
+    viewMenu('Merjenje', 'Pretvarjaj enote. Krog ima 10 nalog.', [{ items: [
+      { key: 'meas-dolzina', name: 'Dolžina', desc: 'm, cm in mm', ex: '3 m = ? cm', cfg: kp('meas-dolzina', function () { return makeMeasureRound('dolzina', 10); }) },
+      { key: 'meas-masa', name: 'Teža in prostornina', desc: 'kg, dag, l in dl', ex: '2 kg = ? dag', cfg: kp('meas-masa', function () { return makeMeasureRound('masa', 10); }) },
+      { key: 'meas-cas', name: 'Čas', desc: 'Ure, minute, sekunde in dnevi', ex: '2 h = ? min', cfg: kp('meas-cas', function () { return makeMeasureRound('cas', 10); }) }
+    ] }]);
+  }
+  function viewCalendarMenu() {
+    viewMenu('Koledar', 'Dnevi in meseci. Krog ima 10 vprašanj.', [{ items: [
+      { key: 'cal-dnevi', name: 'Dnevi v tednu', desc: 'Kateri dan manjka?', ex: 'torek, sreda, ?', cfg: ch('cal-dnevi', function () { return makeCalendarRound('dnevi', 10); }, calView) },
+      { key: 'cal-meseci', name: 'Meseci', desc: 'Zaporedje in število dni', ex: 'marec, april, ?', cfg: ch('cal-meseci', function () { return makeCalendarRound('meseci', 10); }, calView) },
+      { key: 'cal-cez', name: 'Čez nekaj dni', desc: 'Kateri dan bo čez ...?', ex: 'Sreda + 3 dni', cfg: ch('cal-cez', function () { return makeCalendarRound('cez', 10); }, calView) }
+    ] }]);
+  }
+  function viewFractionMenu() {
+    viewMenu('Ulomki', 'Deli celote in deli števil. Krog ima 10 nalog.', [
+      { title: 'Pobarvani deli', items: [
+        { key: 'frac-easy', name: 'Polovice in četrtine', desc: 'Kolikšen del je pobarvan?', ex: '3/4', cfg: ch('frac-easy', function () { return makeFractionRound('easy', 10); }, fracView) },
+        { key: 'frac-hard', name: 'Več delov', desc: 'Tretjine, petine, šestine, osmine', ex: '2/5', cfg: ch('frac-hard', function () { return makeFractionRound('hard', 10); }, fracView) }
+      ] },
+      { title: 'Del števila', items: [
+        { key: 'fo-easy', name: 'Polovica in četrtina', desc: 'Izračunaj del števila', ex: 'Polovica od 24', cfg: kp('fo-easy', function () { return makeFracOfRound('easy', 10); }) },
+        { key: 'fo-hard', name: 'Več ulomkov', desc: 'Tretjina, petina, desetina', ex: 'Petina od 35', cfg: kp('fo-hard', function () { return makeFracOfRound('hard', 10); }) }
+      ] }
+    ]);
+  }
+  function viewShapeMenu() {
+    viewMenu('Liki', 'Spoznaj like. Krog ima 10 vprašanj.', [{ items: [
+      { key: 'poly-ime', name: 'Imena likov', desc: 'Krog, trikotnik, kvadrat ...', ex: 'Kateri lik je to?', cfg: ch('poly-ime', function () { return makePolyRound('ime', 10); }, polyView) },
+      { key: 'poly-stranice', name: 'Stranice in oglišča', desc: 'Štetje stranic in oglišč', ex: 'Koliko stranic?', cfg: ch('poly-stranice', function () { return makePolyRound('stranice', 10); }, polyView) }
+    ] }]);
+  }
+  function viewLetterMenu() {
+    viewMenu('Črkovanje', 'Katera črka manjka v besedi? Krog ima 10 besed.', [{ items: [
+      { key: 'let-a', name: 'Č, Š in Ž', desc: 'Besede s strešicami', ex: '_ola', cfg: ch('let-a', function () { return makeLetterRound('a', 10); }, letterView) },
+      { key: 'let-b', name: 'C, S in Z', desc: 'Besede brez strešic', ex: '_ima', cfg: ch('let-b', function () { return makeLetterRound('b', 10); }, letterView) },
+      { key: 'let-c', name: 'Vse skupaj', desc: 'C, Č, S, Š, Z in Ž', ex: 'ra_un', cfg: ch('let-c', function () { return makeLetterRound('c', 10); }, letterView) }
+    ] }]);
+  }
+  function viewMemoryMenu() {
+    var items = [
+      { id: 'besede', name: 'Število in beseda', desc: 'Najdi pare: 7 in sedem', ex: '7 = sedem' },
+      { id: 'racuni', name: 'Račun in rezultat', desc: 'Najdi pare: račun in rezultat', ex: '3 × 4 = 12' },
+      { id: 'ura', name: 'Ura in čas', desc: 'Najdi pare: ura s kazalci in čas', ex: '3:30' }
+    ];
+    function again() { viewMemoryMenu(); }
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Spomin')),
+      h('p', { class: 'sub' }, 'Obrni dve karti in poišči pare. Manj potez pomeni več biserov.'),
+      h('section', { class: 'levels' }, items.map(function (l) {
+        var best = save.best['mem-' + l.id];
+        return h('button', { class: 'level', type: 'button', onclick: function () { startGame({ kind: 'memory', level: l.id, key: 'mem-' + l.id, back: again, backLabel: 'Druga igra' }); } },
+          h('span', { class: 'name' }, l.name), h('span', { class: 'desc' }, l.desc), h('span', { class: 'ex' }, l.ex),
+          h('span', { class: 'best' }, best != null ? 'Najboljši rezultat: ' + best + ' od 10' : 'Še nisi igral'));
+      }))
+    ]);
+  }
+
+  function startMemory(cfg) {
+    var cards = makeMemoryCards(cfg.level), moves = 0, open = [], found = 0, timer = null, busy = false, btns;
+    if (window.__MATH_TEST__) window.__MATH_TEST__.cards = cards;
+    var count = h('span', { class: 'count' }, 'Poteze: 0');
+    function face(c) {
+      return c.clock ? clockSVG(c.clock[0], c.clock[1]) : null;
+    }
+    function render(idx, state) {
+      var b = btns[idx], c = cards[idx];
+      b.setAttribute('data-state', state);
+      if (state === 'down') { b.innerHTML = '<span class="back">?</span>'; b.setAttribute('aria-label', 'Skrita karta'); }
+      else if (c.clock) { b.innerHTML = face(c); b.setAttribute('aria-label', 'Ura ' + fmtTime(c.clock[0], c.clock[1]).replace(':', ' in ')); }
+      else { b.textContent = c.t; b.setAttribute('aria-label', c.t); }
+    }
+    function finish() {
+      var pearls = Math.max(1, Math.min(10, 20 - moves));
+      save.stars += pearls;
+      recordPlay();
+      if (save.best[cfg.key] == null || pearls > save.best[cfg.key]) save.best[cfg.key] = pearls;
+      persist();
+      beep('done');
+      var rc = {};
+      for (var k in cfg) rc[k] = cfg[k];
+      rc.sub = 'biserov za ' + moves + ' ' + (moves === 1 ? 'potezo' : moves === 2 ? 'potezi' : (moves === 3 || moves === 4) ? 'poteze' : 'potez');
+      viewResult(rc, pearls, 10);
+    }
+    function flip(idx) {
+      if (busy || btns[idx].getAttribute('data-state') !== 'down') return;
+      render(idx, 'up'); open.push(idx);
+      if (open.length < 2) return;
+      moves++; count.textContent = 'Poteze: ' + moves;
+      var a = open[0], b = open[1];
+      open = [];
+      if (cards[a].pair === cards[b].pair) {
+        render(a, 'done'); render(b, 'done'); found++; beep('ok');
+        if (found === cards.length / 2) { busy = true; timer = setTimeout(finish, 700); }
+      } else {
+        busy = true; beep('wrong');
+        timer = setTimeout(function () { render(a, 'down'); render(b, 'down'); busy = false; }, 900);
+      }
+    }
+    btns = cards.map(function (c, idx) {
+      return h('button', { class: 'mcard', type: 'button', onclick: function () { flip(idx); } });
+    });
+    btns.forEach(function (_, idx) { render(idx, 'down'); });
+    setView([
+      h('header', { class: 'bar' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na izbiro', title: 'Nazaj', html: ICON.back, onclick: function () { cfg.back(); } }),
+        count, h('span', { style: 'min-width:52px' })),
+      h('div', { class: 'mem' }, btns)
+    ], function () { if (timer) clearTimeout(timer); });
+  }
+
+  function viewTimesTable() {
+    var banner = h('p', { class: 'banner', 'aria-live': 'polite' }, 'Tapni na število v tabeli.');
+    var cells = [], grid = h('div', { class: 'mtab' }), r, c;
+    function select(sr, sc) {
+      cells.forEach(function (x) {
+        x.el.className = 'mc' + (x.r === sr && x.c === sc ? ' on' : (x.r <= sr && x.c <= sc ? ' in' : ''));
+      });
+      banner.textContent = sr + ' × ' + sc + ' = ' + (sr * sc);
+    }
+    grid.append(h('span', { class: 'mh' }, '×'));
+    for (c = 1; c <= 10; c++) grid.append(h('span', { class: 'mh' }, String(c)));
+    for (r = 1; r <= 10; r++) {
+      grid.append(h('span', { class: 'mh' }, String(r)));
+      for (c = 1; c <= 10; c++) {
+        (function (rr, cc) {
+          var el = h('button', { class: 'mc', type: 'button', 'aria-label': rr + ' krat ' + cc, onclick: function () { select(rr, cc); } }, String(rr * cc));
+          cells.push({ el: el, r: rr, c: cc }); grid.append(el);
+        })(r, c);
+      }
+    }
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Tabela poštevanke')),
+      banner,
+      grid
+    ]);
+  }
+
+  function coinNode(v) {
+    var cls = v < 10 ? 'c0' : v < 100 ? 'c1' : v < 500 ? 'c2' : 'note n' + v;
+    var label = v < 100 ? v + ' c' : (v / 100) + ' €';
+    return h('span', { class: 'coin ' + cls, 'data-v': String(v), role: 'img', 'aria-label': label }, label);
+  }
+
+  /* ---------- Note ---------- */
+  function staffSVG(p) {
+    var y = 60 - p * 4, i, s = '<svg viewBox="0 0 160 90" aria-hidden="true" focusable="false">';
+    for (i = 0; i < 5; i++) s += '<path class="stl" d="M10 ' + (28 + 8 * i) + 'H150"/>';
+    if (p <= -2) s += '<path class="stl" d="M66 68H94"/>';
+    if (p >= 10) s += '<path class="stl" d="M66 20H94"/>';
+    s += p < 4 ? '<path class="stl" d="M86.5 ' + y + 'V' + (y - 28) + '"/>' : '<path class="stl" d="M73.5 ' + y + 'V' + (y + 28) + '"/>';
+    s += '<ellipse class="nhead" cx="80" cy="' + y + '" rx="7.5" ry="5.2" transform="rotate(-20 80 ' + y + ')"/>';
+    return s + '</svg>';
+  }
+  function noteView(q) {
+    return {
+      stage: h('div', { style: 'display:grid; place-items:center; gap:10px; width:100%' },
+        h('div', { class: 'staff', 'data-p': String(q.p), role: 'img', 'aria-label': 'Nota na črtovju', html: staffSVG(q.p) }),
+        h('div', { class: 'expr word' }, 'Katera nota je to?')),
+      options: q.options.map(function (t) { return { text: t }; }),
+      optClass: '', optsClass: '',
+      idle: 'Katera nota je to? Pomni: v Sloveniji noti B rečemo H.',
+      reveal: 'To je nota ' + q.ans + '.'
+    };
+  }
+  function viewNoteMenu() {
+    viewMenu('Branje not', 'Violinski ključ: imenuj noto na črtovju. Krog ima 10 not.', [{ items: [
+      { key: 'note-easy', name: 'Na črtovju', desc: 'Od D pod črtovjem do G nad njim', ex: 'C D E F G A H', cfg: ch('note-easy', function () { return makeNoteRound('easy', 10); }, noteView) },
+      { key: 'note-hard', name: 'S pomožnimi črtami', desc: 'Tudi C in A s pomožno črtico', ex: 'C ali A', cfg: ch('note-hard', function () { return makeNoteRound('hard', 10); }, noteView) }
+    ] }]);
+  }
+  function viewSpeedMenu() {
+    function sp(key, kind) { return function (back) { return { key: key, round: function () { return makeSpeedRound(kind); }, seconds: 60, back: back, backLabel: 'Druga igra' }; }; }
+    viewMenu('Hitro računanje', 'Reši čim več nalog v 60 sekundah. Za vsaki dve rešeni nalogi dobiš biser, največ 10.', [{ items: [
+      { key: 'speed-plus', name: 'Seštevanje in odštevanje', desc: 'Števila do 100', ex: '60 sekund', cfg: sp('speed-plus', 'plus') },
+      { key: 'speed-mul', name: 'Poštevanka', desc: 'Množenje in deljenje', ex: '60 sekund', cfg: sp('speed-mul', 'mul') },
+      { key: 'speed-all', name: 'Vse skupaj', desc: 'Vse štiri računske operacije', ex: '60 sekund', cfg: sp('speed-all', 'all') }
+    ] }]);
+  }
+
+  /* ---------- Hobijeva garderoba ---------- */
+  var HATS = {
+    kapitan: '<path d="M30 22C30 4 90 4 90 22z" fill="#1B2A4A"/><rect x="26" y="20" width="68" height="9" rx="4.5" fill="#fff" stroke="#1B2A4A" stroke-width="2"/><circle cx="60" cy="13" r="4" fill="#E9A400"/>',
+    masna: '<path d="M56 14L36 3v22zM64 14l20-11v22z" fill="#FF6FA0" stroke="#D94B82" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="14" r="5.5" fill="#D94B82"/>',
+    ocala: '<rect x="22" y="43" width="32" height="21" rx="9" fill="#1B2540"/><rect x="66" y="43" width="32" height="21" rx="9" fill="#1B2540"/><path d="M54 51h12" stroke="#1B2540" stroke-width="3.5"/><path d="M28 48l8-2M72 48l8-2" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".6"/>',
+    krona: '<path d="M33 22l5-17 11 10 11-14 11 14 11-10 5 17z" fill="#E9A400" stroke="#8A5A00" stroke-width="2.5" stroke-linejoin="round"/><circle cx="60" cy="14" r="3" fill="#C93B2B"/>',
+    carovnik: '<path d="M60 0L33 26h54z" fill="#7B5EA7" stroke="#3F2A70" stroke-width="2.5" stroke-linejoin="round"/><rect x="26" y="23" width="68" height="7" rx="3.5" fill="#5B3FA0" stroke="#3F2A70" stroke-width="2"/><circle cx="58" cy="14" r="2.2" fill="#FFE27A"/><circle cx="65" cy="20" r="1.6" fill="#FFE27A"/>'
+  };
+  var HAT_LIST = [
+    { id: 'kapitan', name: 'Kapitanska kapa', need: 15 },
+    { id: 'masna', name: 'Roza mašna', need: 40 },
+    { id: 'ocala', name: 'Sončna očala', need: 80 },
+    { id: 'krona', name: 'Zlata krona', need: 150 },
+    { id: 'carovnik', name: 'Čarovnikov klobuk', need: 250 }
+  ];
+  function newHatNote(gained) {
+    var prev = save.stars - gained, got = HAT_LIST.filter(function (x) { return x.need > prev && x.need <= save.stars; });
+    return got.length ? h('p', { class: 'sub', style: 'font-weight:600; color:var(--accent)' }, 'Odklenil si nov dodatek za Hobija: ' + got.map(function (x) { return x.name; }).join(', ') + '!') : null;
+  }
+  function viewWardrobe() {
+    var items = [{ id: '', name: 'Brez dodatka', need: 0 }].concat(HAT_LIST);
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Hobijeva garderoba')),
+      h('p', { class: 'sub' }, 'Z biseri odkleneš nove dodatke. Zdaj imaš ' + save.stars + ' ' + biserov(save.stars) + '.'),
+      h('section', { class: 'wardrobe' }, items.map(function (it) {
+        var unlocked = save.stars >= it.need;
+        return h('button', {
+          class: 'ward' + (unlocked ? '' : ' locked'), type: 'button', disabled: !unlocked, 'data-hat': it.id, 'aria-pressed': String(save.hat === it.id),
+          onclick: function () { save.hat = it.id; persist(); viewWardrobe(); }
+        },
+          h('span', { html: octopus('happy', it.id), style: 'display:grid' }),
+          h('span', { class: 't' }, it.name),
+          h('span', { class: 'd' }, unlocked ? (save.hat === it.id ? 'Nosi ga' : 'Obleci') : 'Še ' + kol(it.need - save.stars, NOUN.biser)));
+      }))
+    ]);
+  }
+
+  /* ---------- Pregled za starše ---------- */
+  var PARENT_GROUPS = [
+    { label: 'Seštevanje in odštevanje', match: function (k) { return k === 'easy' || k === 'hard' || k === 'mixed'; } },
+    { label: 'Množenje', match: function (k) { return k.indexOf('mul') === 0; } },
+    { label: 'Deljenje', match: function (k) { return k.indexOf('div') === 0; } },
+    { label: 'Števila (desetice, primerjanje, manjkajoče)', match: function (k) { return /^(ten|cmp|miss)-/.test(k); } },
+    { label: 'Besedilne naloge', match: function (k) { return k.indexOf('word-') === 0; } },
+    { label: 'Denar', match: function (k) { return k.indexOf('money-') === 0; } },
+    { label: 'Branje ure', match: function (k) { return k.indexOf('clock-') === 0; } },
+    { label: 'Koledar', match: function (k) { return k.indexOf('cal-') === 0; } },
+    { label: 'Merjenje', match: function (k) { return k.indexOf('meas-') === 0; } },
+    { label: 'Liki', match: function (k) { return k.indexOf('poly-') === 0; } },
+    { label: 'Ulomki', match: function (k) { return /^(frac|fo)-/.test(k); } },
+    { label: 'Zaporedja', match: function (k) { return k.indexOf('seq-') === 0; } },
+    { label: 'Črkovanje', match: function (k) { return k.indexOf('let-') === 0; } },
+    { label: 'Branje not', match: function (k) { return k.indexOf('note-') === 0; } },
+    { label: 'Spomin', match: function (k) { return k.indexOf('mem-') === 0; } },
+    { label: 'Hitro računanje', match: function (k) { return k.indexOf('speed-') === 0; } },
+    { label: 'Mešani izziv', match: function (k) { return k === 'izziv'; } }
+  ];
+  function viewParents() {
+    var armed = false, streak = currentStreak();
+    var resetBtn = h('button', { class: 'btn ghost', type: 'button', onclick: function () {
+      if (!armed) { armed = true; resetBtn.textContent = 'Res izbrišem? Tapni še enkrat.'; return; }
+      save.stars = 0; save.streak = 0; save.lastDay = ''; save.best = {}; save.hat = '';
+      persist(); viewHome();
+    } }, 'Izbriši ves napredek');
+    var rows = PARENT_GROUPS.map(function (g) {
+      var keys = Object.keys(save.best).filter(g.match), sum = 0, i;
+      for (i = 0; i < keys.length; i++) sum += save.best[keys[i]];
+      var avg = keys.length ? sum / keys.length : 0, weak = keys.length > 0 && avg < 7;
+      return h('div', { class: 'prow' + (weak ? ' weak' : '') },
+        h('span', { class: 'nm' }, g.label, h('small', null, keys.length ? 'Preizkušenih stopenj: ' + keys.length + (weak ? ' · vredno še vaditi' : '') : 'Še ni igrano')),
+        h('span', { class: 'bar2', role: 'img', 'aria-label': keys.length ? 'Povprečni najboljši rezultat ' + avg.toFixed(1) + ' od 10' : 'Ni podatkov' }, h('i', { style: 'width:' + (avg * 10) + '%' })),
+        h('span', { class: 'val' }, keys.length ? avg.toFixed(1).replace('.', ',') + ' / 10' : '–'));
+    });
+    setView([
+      h('header', { class: 'pagehead' },
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na začetek', title: 'Nazaj', html: ICON.back, onclick: function () { viewHome(); } }),
+        h('h1', null, 'Pregled za starše')),
+      h('p', { class: 'sub' }, 'Skupaj ' + save.stars + ' ' + biserov(save.stars) + ', zaporedni dnevi igranja: ' + streak + '. Prikazan je povprečni najboljši rezultat po temah (od 10). Podatki so shranjeni samo na tej napravi.'),
+      h('section', { class: 'plist' }, rows),
+      h('div', { class: 'actions' }, resetBtn)
+    ]);
+  }
+
+  var PRAISE = ['Odlično!', 'Bravo!', 'Super, plavaš v računih!', 'Točno! Hobi je navdušen!', 'Tako se računa!'];
+  var MOODS = { idle: 'happy', ok: 'cheer', retry: 'oops', wrong: 'oops' };
+
+  function startGame(cfg) {
+    if (cfg.kind === 'clock' || cfg.kind === 'choice') { startChoiceGame(cfg); return; }
+    if (cfg.kind === 'memory') { startMemory(cfg); return; }
+    var qs = cfg.round();
+    if (window.__MATH_TEST__) window.__MATH_TEST__.qs = qs;
+    var total = qs.length;
+    var i = 0, input = '', tries = 0, locked = false, firstTry = 0, solved = 0, timerId = null, ended = false;
+
+    var ref = {};
+    ref.count = h('span', { class: 'count' });
+    ref.earnedIcon = h('span', { class: 'ei', html: ICON.pearl });
+    ref.earnedNum = h('b', null, '0');
+    ref.fill = h('i');
+    ref.expr = h('div', { class: 'expr' });
+    ref.extra = h('div', { class: 'coins', hidden: true });
+    ref.ans = h('div', { class: 'ans empty', 'aria-live': 'polite' });
+    ref.fbIcon = h('span', { class: 'mi' });
+    ref.fbText = h('span', { class: 'ft' });
+    ref.fb = h('div', { class: 'fb', 'data-state': 'idle', role: 'status', 'aria-live': 'polite' }, ref.fbIcon, ref.fbText);
+
+    function setFb(state, text) {
+      ref.fb.setAttribute('data-state', state);
+      ref.fbIcon.innerHTML = octopus(MOODS[state]);
+      ref.fbText.textContent = text;
+    }
+    function setGo(label) { ref.go.textContent = label; }
+    function retrigger(el, cls) {
+      el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+    }
+    function showAns() {
+      ref.ans.textContent = input || '?';
+      ref.ans.classList.toggle('empty', !input);
+    }
+    function renderQ() {
+      var q = qs[i];
+      input = ''; tries = 0; locked = false;
+      if (!cfg.seconds) {
+        ref.count.textContent = 'Vprašanje ' + (i + 1) + ' od ' + total;
+        ref.fill.style.width = (i / total * 100) + '%';
+      }
+      ref.extra.replaceChildren.apply(ref.extra, (q.coins || []).map(coinNode));
+      ref.extra.hidden = !q.coins;
+      if (q.seq) {
+        ref.expr.className = 'expr seq';
+        ref.expr.replaceChildren.apply(ref.expr, q.seq.map(function (v) {
+          return h('span', { class: 'tile' + (v == null ? ' gap' : '') }, v == null ? '?' : String(v));
+        }));
+        ref.expr.setAttribute('aria-label', 'Zaporedje: ' + q.seq.map(function (v) { return v == null ? 'manjka' : v; }).join(', '));
+      } else if (q.prompt) {
+        ref.expr.className = 'expr ' + (q.eq ? 'eq' : 'word');
+        ref.expr.textContent = q.prompt;
+        ref.expr.setAttribute('aria-label', q.prompt);
+      } else {
+        var sym = { '+': '+', '-': '−', '*': '×', '/': '÷' }[q.op];
+        var word = { '+': ' plus ', '-': ' minus ', '*': ' krat ', '/': ' deljeno z ' }[q.op];
+        ref.expr.className = 'expr';
+        ref.expr.textContent = q.a + ' ' + sym + ' ' + q.b;
+        ref.expr.setAttribute('aria-label', q.a + word + q.b);
+      }
+      ref.ans.classList.remove('reveal');
+      showAns();
+      setFb('idle', q.seq ? 'Vpiši manjkajoče število in pritisni Preveri.' : q.prompt ? 'Vpiši odgovor in pritisni Preveri.' : 'Vpiši rezultat in pritisni Preveri.');
+      setGo('Preveri');
+    }
+    function press(d) {
+      if (locked) return;
+      if (input === '0') input = '';
+      if (input.length < 3) input += d;
+      showAns();
+    }
+    function erase() {
+      if (locked) return;
+      input = input.slice(0, -1);
+      showAns();
+    }
+    function lockRound() {
+      locked = true;
+      ref.fill.style.width = ((i + 1) / total * 100) + '%';
+      setGo(i === total - 1 ? 'Končaj' : 'Naprej');
+    }
+    function check() {
+      if (locked) { next(); return; }
+      if (!input) { setFb('idle', 'Najprej vpiši rezultat.'); return; }
+      var q = qs[i];
+      if (cfg.seconds) {
+        if (Number(input) === q.ans) {
+          solved++;
+          ref.earnedNum.textContent = String(Math.min(10, Math.ceil(solved / 2))); retrigger(ref.earnedIcon, 'pop');
+          beep('ok');
+          if (i >= total - 1) { finish(); return; }
+          i++; renderQ();
+        } else {
+          beep('wrong'); retrigger(ref.ans, 'shake'); input = ''; showAns();
+          setFb('retry', 'Skoraj! Poskusi še enkrat.');
+        }
+        return;
+      }
+      if (Number(input) === q.ans) {
+        if (tries === 0) { firstTry++; ref.earnedNum.textContent = String(firstTry); retrigger(ref.earnedIcon, 'pop'); }
+        setFb('ok', PRAISE[rnd(0, PRAISE.length - 1)]);
+        beep('ok');
+        lockRound();
+      } else if (tries === 0) {
+        tries = 1;
+        setFb('retry', 'Skoraj! Poskusi še enkrat.');
+        beep('wrong');
+        retrigger(ref.ans, 'shake');
+        input = ''; showAns();
+      } else {
+        setFb('wrong', 'Pravilen odgovor je ' + q.ans + '. Naslednjič ti bo uspelo!');
+        beep('wrong');
+        ref.ans.textContent = String(q.ans);
+        ref.ans.classList.remove('empty');
+        ref.ans.classList.add('reveal');
+        lockRound();
+      }
+    }
+    function next() {
+      if (i >= total - 1) { finish(); return; }
+      i++; renderQ();
+    }
+    function finishTimed() {
+      var pearls = Math.min(10, Math.ceil(solved / 2));
+      save.stars += pearls;
+      recordPlay();
+      if (save.best[cfg.key] == null || pearls > save.best[cfg.key]) save.best[cfg.key] = pearls;
+      persist();
+      beep('done');
+      var rc = {};
+      for (var k in cfg) rc[k] = cfg[k];
+      rc.sub = 'biserov. Rešenih nalog: ' + solved;
+      viewResult(rc, pearls, 10);
+    }
+    function finish() {
+      if (ended) return;
+      ended = true;
+      if (cfg.seconds) { finishTimed(); return; }
+      save.stars += firstTry;
+      recordPlay();
+      if (save.best[cfg.key] == null || firstTry > save.best[cfg.key]) save.best[cfg.key] = firstTry;
+      persist();
+      beep('done');
+      viewResult(cfg, firstTry, total);
+    }
+
+    function key(label, fn, extra, props) {
+      var p = { type: 'button', class: 'key' + (extra ? ' ' + extra : ''), onmousedown: function (e) { e.preventDefault(); }, onclick: fn };
+      for (var k in (props || {})) p[k] = props[k];
+      return h('button', p, label);
+    }
+    var keys = '123456789'.split('').map(function (d) { return key(d, function () { press(d); }); });
+    keys.push(key(null, erase, '', { html: ICON.del, 'aria-label': 'Briši' }));
+    keys.push(key('0', function () { press('0'); }));
+    ref.go = key('Preveri', check, 'go');
+    keys.push(ref.go);
+
+    var earned = h('span', { class: 'earned', 'aria-label': 'Biseri v tem krogu' }, ref.earnedIcon, ref.earnedNum);
+    var backBtn = h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Nazaj na izbiro', title: 'Nazaj', html: ICON.back, onclick: function () { cfg.back(); } });
+
+    function onKey(e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (/^[0-9]$/.test(e.key)) press(e.key);
+      else if (e.key === 'Backspace') erase();
+      else if (e.key === 'Enter') {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        check();
+      }
+    }
+    document.addEventListener('keydown', onKey);
+
+    setView([
+      h('header', { class: 'bar' }, backBtn, ref.count, earned),
+      h('div', { class: 'progress', role: 'presentation' }, ref.fill),
+      h('div', { class: 'play' },
+        h('section', { class: 'stage' }, h('div', { class: 'qcard' }, ref.expr, ref.extra, ref.ans), ref.fb),
+        h('section', { class: 'pad' }, keys))
+    ], function () { document.removeEventListener('keydown', onKey); if (timerId) clearInterval(timerId); });
+
+    if (cfg.seconds) {
+      var secs = (window.__MATH_TEST__ && window.__MATH_TEST__.seconds) || cfg.seconds, t0 = Date.now();
+      ref.count.textContent = 'Še ' + secs + ' s';
+      timerId = setInterval(function () {
+        var left = Math.max(0, secs - Math.floor((Date.now() - t0) / 1000));
+        ref.count.textContent = 'Še ' + left + ' s';
+        ref.fill.style.width = ((secs - left) / secs * 100) + '%';
+        if (left <= 0) finish();
+      }, 250);
+    }
+    renderQ();
+  }
+
+  function viewResult(cfg, score, total) {
+    var msg = score >= 9 ? 'Čudovit rezultat!' : score >= 7 ? 'Odlično!' : score >= 5 ? 'Dobro gre. Vaja dela mojstra!' : 'Trud se splača. Poskusi še enkrat!';
+    var row = h('div', { class: 'starrow', role: 'img', 'aria-label': score + ' od ' + total + ' biserov' });
+    for (var k = 0; k < total; k++) row.append(h('span', { class: 's' + (k < score ? ' on' : ''), html: ICON.pearl }));
+    setView([
+      h('div', { class: 'result' },
+        h('span', { html: octopus(score >= 5 ? 'cheer' : 'happy'), style: 'display:grid' }),
+        h('h1', null, msg),
+        h('div', { class: 'score' }, score + ' od ' + total),
+        h('p', { class: 'sub' }, cfg.sub || 'pravilnih na prvi poskus'),
+        row,
+        h('p', null, 'Skupaj imaš ' + kol(save.stars, NOUN.biser) + '.'),
+        newHatNote(score),
+        h('div', { class: 'actions' },
+          h('button', { class: 'btn', type: 'button', onclick: function () { startGame(cfg); } }, 'Še enkrat'),
+          h('button', { class: 'btn ghost', type: 'button', onclick: function () { cfg.back(); } }, cfg.backLabel),
+          h('button', { class: 'btn ghost', type: 'button', onclick: function () { viewHome(); } }, 'Domov')))
+    ]);
+  }
+
+  viewHome();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
